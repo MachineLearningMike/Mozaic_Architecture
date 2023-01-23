@@ -3,7 +3,7 @@
 ### <p style="text-align: center;">Brainstorming the architecture of asset management</p>
 
 
-#### Specifying system requirements
+#### 1. Specifying system requirements
 <br/>
 Mozaic system has aggregational and DAO use cases.
 Aggregational use cases are shown in the following figure:
@@ -18,9 +18,7 @@ The use cases and external actors are described below:
 - **Compound**: This hidden use case compounds rewards. Idle assets should not ba allowed, and all rewards should be compounded as much and soon as possible.
 - **Execute fund flow**: This use case checks, carry out, and keeps track of assets move. The assets managed by the system can only be moved by this use case transparently.
 - **Deposit**: This use case deposit the user's assets in the system. **User** calls this use case in the hope that Mozaic system will **Optimize staking** of the deposited assets for them. This use case includes **Execute fund flow**.
-- **Withdraw**: This use case withdraws the user's deposited assets. **User** calls this use case. This use case includes **Execute fund flow**.
-- **Harvest**: This use case collects reward allocated to the user's deposited asset. **User** calls this use case. It includes **Execute fund flow**.
-- **Drawvest**: This is an alternative use case for **Withdraw** and **Harvest** put together. This use case may replace those two use cases if the community prefers it.
+- **Withdraw**: This use case withdraws from the user's rewards and, if needed, deposited assets. (The deposited assets are increased by perpetual compounding of rewards.) **User** calls this use case. This use case includes **Execute fund flow**.
 - **Optimize staking**: This use case upgrades the staking of deposited assets to maximize rewards. **Profit generator**, a role of the system, calls this use case. This use case includes **Execute fund flow** and **Compound**. *By providing **Execute fund flow** with **staking_plan**, this use case effectively prevents it from being involved with finding optimal staking portfolio.*
 - **Trade**: This use case swaps idle assets to get profit by using price changes. It calls **Dex**. *By providing ****Profit generator** calls this use case prevents it from being involved with finding optimal trading orders. It includes **Execute funds flow**.*
 - **Collect reward**: This use case  collects rewards from Staking pools. Use case Execute fund flow, when it is working under **Optimize staking**, is extended by this use case. This use case calls Staking pool.
@@ -28,7 +26,10 @@ The use cases and external actors are described below:
 - **Dex**: This actor is a smart contract that swaps between assets. Examples are pairs on Curve and Balancer DeFies.
 - **Staking pool**: This actor is a smart contract that allocates reward to assets that are staked in it. Examples are farming pools on CBridge and Stargate DeFies.
 <br><br>
-#### Identifying vaults through its surrounding modules
+
+<div style="page-break-after: always;"></div>
+
+#### 2. Identifying vaults through its surrounding modules
 <br>
 As the first implementation step, we identify the module that executes use case **Execute fund flow**, as it seems to act as the controller and be one of unique features of the system.
 The design decisions are as illustrated in the following figure:
@@ -64,7 +65,9 @@ Functional modules are described below:
 - **Trading planner**: This is similar to **Staking planner**, except that it relates trading.
 - **Pools tracker**: A shared module between **Staking optimizer** and **Trading optimizer**, this module retrieves and tracks all relevant information from chains, like Reward Release Speed, and total Staked LP of each pool. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fee and effectively disable the system.
 
-#### Exploring vaults
+<div style="page-break-after: always;"></div>
+
+#### 3. Exploring vaults
 <br>
 
 We have identified vaults through their surrounding modules interacting with them.
@@ -74,16 +77,40 @@ The external actors in the following use case diagram, together with their inter
   <img src=".\Vault use cases 1.0.PNG" width="1280" title="vault use cases">
 </p>
 
-- **_Deposit**: This is what happens at the level of vault contracts when **Deposit** use case is invoked at the system level. This use case has two disconnected continued parts: 
-  - **Book deposit
-- **_Withdraw**: This is what happens at the level of vault contracts when **Withdraw** use case is invokced at the system level.
-- **_Harvest**: This is what happens at the level of vault contracts when **Harvest** use case is invoked at the system level.
+- **_Deposit**: This is what happens at the level of vault contracts when **Deposit** use case is invoked at the system level. Invoked by **User wallet** with fund amount to deposit, this use case coordinates the following two use cases.
+- **Book deposit**: This use case 
+    - collects the fund from **User wallet**,
+    - books the deposit request with the system,
+    - and pauses the session of "_Deposit".
+- **Finish deposit**: This use case 
+    - resume the session of "_Deposit",
+    - retrieves the booked deposit request, 
+    - mints LP tokens to cover the new fund, 
+    - returns the LP tokens to **User wallet**,
+    - and helps **Transition to new staking** stake the fund.
+- **_Withdraw**: This is what happens at the level of vault contracts when **Withdraw** use case is invoked at the system level. Invoked by **User wallet** wih LP tokens returned, this used case coordinates the following two use cases.
+- **Book withdraw**: This use case 
+    - collects the returned LP tokens,
+    - burns the collected LP tokens,
+    - books the withdrawal request with the system,
+    - and pauses the session of "_Deposit".
+- **Finish deposit**: This use case 
+    - resume the session of "_Deposit",
+    - retrieves the books withdrawal request,
+    - subtract fund, as much as covered by the returned LP tokens, from the total system assets, and
+    - returns the fund to **User wallet**
+- **Transition to new staking**: This use case executes **staking_plan** provided by **Staking optimizer**. (This is the most challenging part of vault implementation.) It does *collectively*, by using **Move staking asset**,
+    - **Collect reward**,
+    - Collect staked assets, to cover the fund to **Finish withdraw**,
+    - **Finish deposit**,
+    - **Finish withdraw**,
+    - execute remaining part of **staking_plan**
+- **Trade**: This use case executes **trading_plan** provided by **Trading optimizer**.
 
+<div style="page-break-after: always;"></div>
 
+#### 4. Staking planner algorithm
 
-#### Staking planner algorithm
+<div style="page-break-after: always;"></div>
 
-
-
-
-#### Transition planner algorithm
+#### 5. Transition planner algorithm
