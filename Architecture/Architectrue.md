@@ -1,7 +1,7 @@
 
-<br/>
-### Brainstorming architecture of asset management
-<br/>
+
+### Brainstorming the architecture of asset management
+
 #### System requirements specified
 <br/>
 Mozaic system has aggregational and DAO use cases.
@@ -63,16 +63,19 @@ Functional modules are described below:
 - **Trading planner**: This is similar to **Staking planner**, except that it relates trading.
 - **Pools tracker**: A shared module between **Staking optimizer** and **Trading optimizer**, this module retrieves and tracks all relevant information from chains, like Reward Release Speed, and total Staked LP of each pool. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fee and effectively disable the system.
 
-#### Identifying vaults through its surrounding modules
+#### Exploring vaults identified above
 <br>
 
 <p align="center">
   <img src=".\Vault use cases 1.0.PNG" width="1280" title="vault use cases">
 </p>
 
+This is a text.
 
 
-####Staking planner algorithm
-<br>
+#### Staking planner algorithm
 
 
+
+
+#### Transition planner algorithm
