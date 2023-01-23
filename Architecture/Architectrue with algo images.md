@@ -111,8 +111,6 @@ The external actors in the following use case diagram, together with their inter
 
 #### 4. Algorithm of Staking planner
 
-1. **Definition**
-
 <p align="center">
   <img src=".\Pools state.png" width="1280" title="high-level use cases">
 </p>
