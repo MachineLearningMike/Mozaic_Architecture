@@ -110,29 +110,30 @@ The external actors in the following use case diagram, together with their inter
 <div style="page-break-after: always;"></div>
 
 #### 4. Algorithm of Staking planner
+(Algorith is presented in images, becasue LaTex edits were rendered but couldn't be converted to pdf format. The whole world seems to be sick of this trouble.)
 
 <p align="center">
-  <img src=".\Pools state.png" width="1280" title="high-level use cases">
+  <img src=".\Pools state.PNG" width="1280">
 </p>
 <br>
 
 <p align="center">
-  <img src=".\Token vectors.png" width="1280" title="high-level use cases">
+  <img src=".\Token vectors.PNG" width="1280">
 </p>
 <br>
 
 <p align="center">
-  <img src=".\Asset vectors.png" width="1280" title="high-level use cases">
+  <img src=".\Asset vectors.PNG" width="1280">
 </p>
 <br>
 
 <p align="center">
-  <img src=".\Transformations.png" width="1280" title="high-level use cases">
+  <img src=".\Transformations.PNG" width="1280">
 </p>
 <br>
 
 <p align="center">
-  <img src=".\Mozaic asset state.png" width="1280" title="high-level use cases">
+  <img src=".\Mozaic assets state.PNG" width="1280">
 </p>
 <br>
 
@@ -140,7 +141,7 @@ The external actors in the following use case diagram, together with their inter
 2. **Algorithm**
 
 <p align="center">
-  <img src=".\Algorithm.png" width="1280" title="high-level use cases">
+  <img src=".\Algorithm.PNG" width="1280">
 </p>
 <br>
 
