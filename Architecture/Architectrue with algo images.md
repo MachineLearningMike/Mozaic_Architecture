@@ -145,6 +145,7 @@ The external actors in the following use case diagram, together with their inter
 </p>
 <br>
 
+( The image is blurred, but there is $USDT^{+}$ on the left top-down transformation column and  $USDT^{-}$ on the right bottom-up one.)
 
 <div style="page-break-after: always;"></div>
 
