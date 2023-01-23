@@ -1,0 +1,59 @@
+
+
+### Architecture
+
+#### System requirements specified
+
+Mozaic system has aggregational and DAO use cases.
+Aggregational use cases are shown in the following figure.
+
+<p align="center">
+  <img src=".\High-level use cases 1.0.PNG" width="1280" title="high-level use cases">
+</p>
+
+The use cases and external actors are described below:
+- **Compound**: This hidden use case compounds rewards. Idle assets should not ba allowed, and all rewards should be compounded as much and soon as possible.
+- **Execute fund flow**: This use case checks, carry out, and keeps track of assets move. The assets managed by the system can only be moved by this use case transparently.
+- **Deposit**: This use case deposit the user's assets in the system. **User** calls this use case in the hope that Mozaic system will **Optimize staking** of the deposited assets for them. This use case includes **Execute fund flow**.
+- **Withdraw**: This use case withdraws the user's deposited assets. **User** calls this use case. This use case includes **Execute fund flow**.
+- **Harvest**: This use case collects reward allocated to the user's reposited asset. **User** calls this use case. It includes **Execute fund flow**.
+- **Drawvest**: This is an alternative use case for **Withdraw** and **Harvest** put together. This use case may replace those two use cases if the community prefers it.
+- **Optimize staking**: This use case upgrades the staking of deposited assets to maxmize rewards. **Profit generator**, a role of the system, calls this use case. This use case includes **Execute fund flow** and **Compound**. *By providing **Execute fund flow** with **staking_plan**, this use case effectively prevents it from being involved with finding optimal staking portfolio.*
+- **Trade**: This use case swaps idle assets to get profit by using price changes. It calls **Dex**. *By providing ****Profit generator** calls this use case prevents it from being involved with finding optimal trading orders. It includes **Execute funds flow**.*
+- **Collect reward**: This use case  collects rewards from Staking pools. Use case Execute fund flow, when it is working under **Optimize staking**, is extended by this use case. This use case calls Staking pool.
+- **Move staking asset**: This use case move assets to/between/from, **Staking pools**. **Execute fund flow**, when it is working under Optimize staking, is extented byt this use case. This use case calls Staking pool.
+- **Dex**: This actor is a smart contract that swaps between assets. Examples are pairs on Curve and Balancer DeFies.
+- **Staking pool**: This actor is a smart contract that allocates reward to assets that are staked in it. Examples are farming pools on CBridge and Stargate DeFies.
+
+#### Identifying vaults through its surrounding modules
+
+As the first implementation step, we identify the module that executes use case **Execute fund flow**, as it seems to act as the controller and be one of unique features of the system.
+The design decisions are as illustrated in the following figure:
+
+<p align="center">
+  <img src=".\High-level functional modules 1.0.PNG" width="1280" title="high-level functional modules">
+</p>
+
+Functional modules are described below:
+- **Secondary valut contract**: This module is a smart contract and deployed on each chain. It participates in the cooperaton with its peer **Secondary vault contract**s to implement **Execute fund flow**, This module has at least the following private operations that work locally on its chain:
+    - collect_reward(...)
+    - move_staking_asset(...)
+- **Master vault contract**: This module is a smart contract, has global operations, in addition to the local operations inherited from **Secondary vault contract**, and is deployed on one and only one of the chains, called **Home chain**, where it takes the role of **Secondary vault contract**, as well as the the unique role of the master vault operating **LP token contract**.
+- **LP token contract**: This module manages the LP token balances of **User**s, which represents the their proportional share of the total assets of the system. Their share comprises of their deposited assets plus automatic compounding. *It is a deliberate design decision that the LP token only exists on **Home chain**.*
+- **User wallet**: This is a blockchain wallet and identifies a **User**. **User**'s actions; like deposit, withdraw, and harvest; are authenticated/authorized with this wallet.
+- **Treasury wallet**: This is a blockchain wallet, and a place to store and retrieve system revenues, like fees. It will be better if it is not owned by a human, but be the account of a smart contract that only obeys vault contracts, for better decentralization.
+- **Vault account**: It is the account of **Secondary vault contract** and used to store temporary assets, like funds pending staking.
+- **Staking optimizer**: This is an off-chain module that can invoke the vaults. This module calculate optimal **staking_plan**s and let the vaults to execute the plans. *It is an important design decision that the staking_plan is calculated off-chain, thus leading to transparency and security debates, for the sake of gas- and time- savings:*
+    - Transparency debate: **User**s will not be able to track why the system chose particular **staking_plan**s technically.
+    - Security debate: If the calculation of **staking_plan** is hacked or compromised, then the system will make a less optimal, if not harmful, staking manuvour.
+    - Justification 2: Only the second of the following concerns becomes less transparent, leading to both unassured 
+        - how much of what assets from which pool to which pool, is the move about
+        - whether all the asset moves are reasonably/optimally chosen
+        - whether all the asset moves are securly executed and logged
+        - whether the move loggs are readily available to check later
+
+
+<p align="center">
+  <img src=".\Vault use cases 1.0.PNG" width="1280" title="vault use cases">
+</p>
+
