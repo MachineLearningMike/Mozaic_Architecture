@@ -146,8 +146,6 @@ Note 2. Algorithm is presented in images, becasue LaTex edits were rendered but 
 </p>
 <br>
 
-( The image is blurred, but there is $USDT^{+}$ on the left top-down transformation column and  $USDT^{-}$ on the right bottom-up one.)
-
 <div style="page-break-after: always;"></div>
 
 #### 5. Algorithm of Transition planner
