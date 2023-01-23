@@ -63,7 +63,6 @@ Functional modules are described below:
 - **Trading planner**: This is similar to **Staking planner**, except that it relates trading.
 - **Pools tracker**: A shared module between **Staking optimizer** and **Trading optimizer**, this module retrieves and tracks all relevant information from chains, like Reward Release Speed, and total Staked LP of each pool. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fee and effectively disable the system.
 
-<br>
 #### Identifying vaults through its surrounding modules
 <br>
 
@@ -73,7 +72,6 @@ Functional modules are described below:
 
 
 
-<br>
 ####Staking planner algorithm
 <br>
 
