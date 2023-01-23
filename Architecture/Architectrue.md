@@ -63,14 +63,21 @@ Functional modules are described below:
 - **Trading planner**: This is similar to **Staking planner**, except that it relates trading.
 - **Pools tracker**: A shared module between **Staking optimizer** and **Trading optimizer**, this module retrieves and tracks all relevant information from chains, like Reward Release Speed, and total Staked LP of each pool. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fee and effectively disable the system.
 
-#### Exploring vaults identified above
+#### Exploring vaults
 <br>
+
+We have identified vaults through their surrounding modules interacting with them.
+The external actors in the following use case diagram, together with their interactions with vaults are already describled above. We can now explore the use cases of vault.
 
 <p align="center">
   <img src=".\Vault use cases 1.0.PNG" width="1280" title="vault use cases">
 </p>
 
-This is a text.
+- **_Deposit**: This is what happens at the level of vault contracts when **Deposit** use case is invoked at the system level. This use case has two disconnected continued parts: 
+  - **Book deposit
+- **_Withdraw**: This is what happens at the level of vault contracts when **Withdraw** use case is invokced at the system level.
+- **_Harvest**: This is what happens at the level of vault contracts when **Harvest** use case is invoked at the system level.
+
 
 
 #### Staking planner algorithm
