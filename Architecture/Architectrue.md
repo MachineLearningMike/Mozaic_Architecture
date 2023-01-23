@@ -1,12 +1,12 @@
 
-<br>
+<br/>
 ### Brainstorming architecture of asset management
-<br>
+<br/>
 #### System requirements specified
-<br>
+<br/>
 Mozaic system has aggregational and DAO use cases.
 Aggregational use cases are shown in the following figure.
-<br>
+<br/>
 
 <p align="center">
   <img src=".\High-level use cases 1.0.PNG" width="1280" title="high-level use cases">
