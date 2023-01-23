@@ -141,8 +141,6 @@ Note 2. Algorithm is presented in images, becasue LaTex edits were rendered but 
 <br>
 
 
-2. **Algorithm**
-
 <p align="center">
   <img src=".\Algorithm.PNG" width="1280">
 </p>
