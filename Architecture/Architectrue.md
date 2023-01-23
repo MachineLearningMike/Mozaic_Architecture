@@ -148,6 +148,7 @@ The external actors in the following use case diagram, together with their inter
     - **Vector of booked deposit requests**, at time index $t$
     
         $Deposits^t = \{D_i^t | D_i^t: Deposit \space amount, at \space time \space t, \space denominated \space by \space UserToken_i. i=1..M \}$
+
         Example: $Deposits^t$ of {1, 2, 3} means {1 USDT, 2 USDC, 3 ETH}, assuming $UserTokens = \{USDT, USDC, ETH\}$
 
     - **Vector of booked withdrawals requests**, at time index $t$
