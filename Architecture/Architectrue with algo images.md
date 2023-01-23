@@ -110,7 +110,10 @@ The external actors in the following use case diagram, together with their inter
 <div style="page-break-after: always;"></div>
 
 #### 4. Algorithm of Staking planner
-(Algorith is presented in images, becasue LaTex edits were rendered but couldn't be converted to pdf format. The whole world seems to be sick of this trouble.)
+
+Note 1. All errors, like computer numerical processing and price slippage, are ignored at this stage of architectural design.
+
+Note 2. Algorithm is presented in images, becasue LaTex edits were rendered but couldn't be converted to pdf format. The whole world seems to be sick of this trouble.
 
 <p align="center">
   <img src=".\Pools state.PNG" width="1280">
