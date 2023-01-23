@@ -173,18 +173,6 @@ $$\begin{CD} MS^t = (T, D^t, W^t, R^t, S^t) @> Transition >> MS^{t+1} = (T, zero
 , where zeroD, zeroD, and zeroR are a vector of zero values in their respective formats.
 <br><br>
 
-1. Assets state: actual vs. virtual
-
-A staking pool is 
-
-The system is charged with the management of the following assets, at any give moment of time:
-- 
-
-2. State transition
-
-3. Transformation
-
-4. Consistency
 
 <div style="page-break-after: always;"></div>
 
