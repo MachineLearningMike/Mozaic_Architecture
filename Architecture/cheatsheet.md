@@ -108,15 +108,8 @@ That is so funny! :joy:
 
 ### Highlight
 
-I need to highlight these ==very important words==.
 
 ### Subscript
 
-H~2~O
 
-### Superscript
 
-X^2^
-
-### LaTex
-$x^2 \sin(x) \cup \notin \dot{a} \ddot{a} \Sigma^{*} \bar{x} \bar{\boldsymbol{\Gamma^t \Delta, \epsilon, \leq, }}$
