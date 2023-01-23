@@ -56,7 +56,7 @@ Functional modules are described below:
         - whether all the asset moves are securely and/or reasonably/optimally chosen
         - whether all the asset moves are securely executed and logged
         - whether the move logs are readily available to check later
-        - whether a staking_plan is executed in an integral and consistent scheme
+        - whether the execution of staking_plan is integrated
 - **Trading optimizer**: This off-chain module is similar to **Staking optimizer**, except it relates to trading.
 - **Adimin wallet**: This wallet is used to invoke **Master vault contract", in privilege, on behalf of the administrator.
 - **Staking planner**: An integral component of **Staking optimizer**, this module predicts the next most profitable **staking_portfolio**, based on **pools_info** provided by **Pools tracker**. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fee and effectively disable the system.
@@ -99,7 +99,7 @@ The external actors in the following use case diagram, together with their inter
     - retrieves the books withdrawal request,
     - subtract fund, as much as covered by the returned LP tokens, from the total system assets, and
     - returns the fund to **User wallet**
-- **Transition to new staking**: This use case executes **staking_plan** provided by **Staking optimizer**. (This is the most challenging part of vault implementation.) It does *collectively*, by using **Move staking asset**,
+- **Transition to new staking**: This use case transitions to a new asset state by executing **staking_plan** provided by **Staking optimizer**. (This is the most challenging part of vault implementation.) It does *collectively*, by using **Move staking asset**,
     - **Collect reward**,
     - Collect staked assets, to cover the fund to **Finish withdraw**,
     - **Finish deposit**,
@@ -109,8 +109,21 @@ The external actors in the following use case diagram, together with their inter
 
 <div style="page-break-after: always;"></div>
 
-#### 4. Staking planner algorithm
+#### 4. Algorithm of Staking planner
+
+1. Assets state: actual vs. virtual
+
+A staking pool is 
+
+The system is charged with the management of the following assets, at any give moment of time:
+- 
+
+2. State transition
+
+3. Transformation
+
+4. Consistency
 
 <div style="page-break-after: always;"></div>
 
-#### 5. Transition planner algorithm
+#### 5. Algorithm of Transition planner
