@@ -111,6 +111,68 @@ The external actors in the following use case diagram, together with their inter
 
 #### 4. Algorithm of Staking planner
 
+1. **Definition**
+
+- **Pools state**
+    $PS = \{PS_i | i=1..N\}$
+    where $PS_i$ is the $i$-th pool state
+    $PS_i = (RewardRate_i, RewardToken_i, TotalStaking_i, StakingToken_i, MozaicStaking_i)$
+<br>
+- **Token vectors**
+
+    - **User tokens vector**
+    $UserTokens = \{UserToken_i | i=1..M\}$
+    Example: {USDT, USDC, ETH, BNB, BTC, ...}
+
+    - **Reward tokens vector**
+    $RewardTokens = \{RewardToken_i | i=1..N\}$
+
+    - **Staking tokens vector**
+    $StakingTokens = \{StakingToken_i | i=1..N\}$
+<br>
+
+- **Asset vectors**
+
+    - **Vector of booked deposit requests**, at time index $t$
+    $Deposits^t = \{D_i^t | D_i^t: Deposit \space amount, at \space time \space t, \space denominated \space by \space UserToken_i. i=1..M \}$
+    Example: $Deposits^t$ being {1, 2, 3} means it is {1 USDT, 2 USDC, 3 ETH}, assuming $UserTokens = \{USDT, USDC, ETH\}$
+
+    - **Vector of booked withdrawals requests**, at time index $t$
+    $Withdrawals^t = \{W_i^t | D_i^t: Withdrawal \space amount, at \space time \space t, \space denominated \space by \space UserToken_i. i=1..M \}$
+
+    - **Vector of collected rewards**, at time index $t$
+    $Rewards^t = \{R_i^t | D_i^t: Reward \space amount, at \space time \space t, \space denominated \space by \space RewardToken_i. i=1..M \}$
+
+    - **Vector of staked assets**, at time index $t$
+    $Stakes^t = \{S_i^t | D_i^t: Stake \space amount, at \space time \space t, \space denominated \space by \space StakingToken_i. i=1..M \}$
+<br>
+
+- **Transformations**
+
+    - **$USDT^{+}$**
+    $USDT^{+}$ transforms a Tokens-denominated asset vector to USDT-denominated vector, with market exchange rates.
+    Example: $USDT^{+}$ transforms (1, 2, 3) to (1, 2.02, 1300), assuming UserTokens = (USDT, USDC, ETH) and USDT/USDC = 1.01 and USDT/ETH = 1300.
+
+    - **$USDT^{-}$**
+    $USDT^{-}$ transforms a USDT-denominated asset vector to Tokens-denominated vector, with market exchange rates.
+    Example: $USDT^{-}$ transforms (1, 2.02, 1300) to (1, 2, 3), assuming UserTokens = (USDT, USDC, ETH) and USDT/USDC = 1.01 and USDT/ETH = 1300.
+
+    - **$FOP$**
+    $FOP$, standing for Find Optimal Portfolio, finds the best USDT-denominated vector of staked assets, for a given total USDT amount.
+    Example: $FOP$ transforms (12345) to the best staking of 123 USDT over staking pools, and has the format of USDT-denominated $Stakes^t$, like (100, 20, 3) all in USDT, assuming we have total 3 pools.
+<br>
+
+- **Mozaic's asset state**, at time $t$
+    $MS^t = (Tokens, Deposits^t, Withdrawals^t, Rewards^t, Stakes^t)$
+    Or, simply, $MS^t = (T, D^t, W^t, R^t, S^t)$
+<br>
+
+2. **Algorithm**
+
+$$\begin{CD} MS^t = (T, D^t, W^t, R^t, S^t) @> Transition >> MS^{t+1} = (T, zeroD^{t+1}, zeroW^{t+1}, zeroR^{t+1}, optimalS^{t+1}) \\ @V USDT^{+} VV @A USDT^{-} AA \\ MS_U^t @>>(IgnoreThis)> MS_U^{t+1} = (T, zeroD, zeroW, zeroR, FOP(Total \space USDT))  \\ @V sum VV @A  AA \\ Total \space USDT @>\bar Identical >> Total \space USDT \end{CD}$$
+, where zeroD, zeroD, and zeroR are a vector of zero values in their respective formats.
+<br><br>
+
 1. Assets state: actual vs. virtual
 
 A staking pool is 

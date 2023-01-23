@@ -4,6 +4,8 @@ Thanks for visiting [The Markdown Guide](https://www.markdownguide.org)!
 
 This Markdown cheat sheet provides a quick overview of all the Markdown syntax elements. It can’t cover every edge case, so if you need more information about any of these elements, refer to the reference guides for [basic syntax](https://www.markdownguide.org/basic-syntax) and [extended syntax](https://www.markdownguide.org/extended-syntax).
 
+$$\begin{CD} A @>a>> B \\ @VbVV @AdAA \\ C @>f^2>> D \end{CD}$$
+
 ## Basic Syntax
 
 These are the elements outlined in John Gruber’s original design document. All Markdown applications support these elements.
@@ -108,8 +110,35 @@ That is so funny! :joy:
 
 ### Highlight
 
+I need to highlight these ==very important words==.
 
 ### Subscript
 
+H~2~O
+
+### Superscript
+
+$X^2$
+
+### LaTex
+$$x^2 \sin(x) \cup \notin \dot{a} \ddot{a} \Sigma^{*} \bar{x} \bar{\boldsymbol{\Gamma^t \Delta, \epsilon, \leq, }}$$
 
 
+$$
+E_{CFG} = \{ \langle G \rangle | G \text{ is a CFG and } L(G) = \emptyset \}
+$$
+
+
+
+$$
+D^2_N = \left\\{\begin{array}{c}
+D^2_{N-1} + 2D_{N-1} + 1 = 10\\\\
+or\\\\
+D^2_{N-1} - 2D_{N-1} + 1 = 20\\
+\end{array}\right.
+\tag{6.7}
+$$
+
+$$\begin{CD} A @>a>> B \\ @VbVV \\ F @= D \end{CD}$$
+
+$$\begin{CD} A @>a>> B \\ @VbVV @AdAA \\ C @>f^2>> D \end{CD}$$
