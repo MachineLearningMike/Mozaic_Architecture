@@ -121,10 +121,11 @@ The external actors in the following use case diagram, together with their inter
 
     $PS_i = (RewardRate_i, RewardToken_i, TotalStaking_i, StakingToken_i, MozaicStaking_i)$
 <br>
+
 - **Token vectors**
 
     - **User tokens vector**
-    $UserTokens = \{UserToken_i | i=1..M\}$
+        $UserTokens = \{UserToken_i | i=1..M\}$
 
         Example: $UserTokens = \{USDT, USDC, ETH, BNB, BTC\} $
 
@@ -135,6 +136,11 @@ The external actors in the following use case diagram, together with their inter
     - **Staking tokens vector**
 
         $StakingTokens = \{StakingToken_i | i=1..N\}$
+
+    - **Tokens vector**
+
+        $Tokens = (UserTokens, RewardTokens, StakingTokens)$
+
 <br>
 
 - **Asset vectors**
@@ -155,19 +161,20 @@ The external actors in the following use case diagram, together with their inter
     - **Vector of staked assets**, at time index $t$
 
         $Stakes^t = \{S_i^t | D_i^t: Stake \space amount, at \space time \space t, \space denominated \space by \space StakingToken_i. i=1..M \}$
+
 <br>
 
 - **Transformations**
 
-    - **$USDT^{+}$**
+    - **$USDT^{Plus}$**
 
-        $USDT^{+}$ transforms a Tokens-denominated asset vector to USDT-denominated vector, with market exchange rates.
+        $USDT^{Plus}$ transforms a Tokens-denominated asset vector to USDT-denominated vector, with market exchange rates.
 
         Example: $USDT^{+}$ transforms (1, 2, 3) to (1, 2.02, 1300), assuming UserTokens = (USDT, USDC, ETH) and USDT/USDC = 1.01 and USDT/ETH = 1300.
 
-    - **$USDT^{-}$**
+    - **$USDT^{Minus}$**
 
-        $USDT^{-}$ transforms a USDT-denominated asset vector to Tokens-denominated vector, with market exchange rates.
+        $USDT^{Minus}$ transforms a USDT-denominated asset vector to Tokens-denominated vector, with market exchange rates.
 
         Example: $USDT^{-}$ transforms (1, 2.02, 1300) to (1, 2, 3), assuming UserTokens = (USDT, USDC, ETH) and USDT/USDC = 1.01 and USDT/ETH = 1300.
 
@@ -191,7 +198,7 @@ The external actors in the following use case diagram, together with their inter
 
 2. **Algorithm**
 
-$$\begin{CD} MS^t = (T, D^t, W^t, R^t, S^t) @> (Resulting \space transition) >> MS^{t+1} = (T, 0D, 0W, 0R, optimal \space S^{t+1}) \\ @V USDT^{+} VV @A USDT^{-} AA \\ MS_U^t @>> (Implicit) > MS_U^{t+1} = (T, 0D, 0W, 0R, FOP(Total \space USDT))  \\ @V ElementWiseSum VV @A zeros \space and \space {FOP} AA \\ Total \space USDT @> Identity \space transformation >> Total \space USDT \end{CD}$$
+$$\begin{CD} MS^t = (T, D^t, W^t, R^t, S^t) @> (Resulting \space transition) >> MS^{t+1} = (T, 0D, 0W, 0R, optimal \space S^{t+1}) \\ @V USDT^{Plus} VV @A USDT^{Minus} AA \\ MS_U^t @>> (Implicit) > MS_U^{t+1} = (T, 0D, 0W, 0R, FOP(Total \space USDT))  \\ @V ElementWiseSum VV @A zeros, \space {FOP} AA \\ Total \space USDT @> Identity \space transformation >> Total \space USDT \end{CD}$$
 , where 0D, 0D, and 0R are a vector of zero values in their respective vector lengths.
 <br><br>
 
