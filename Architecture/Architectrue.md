@@ -76,7 +76,3 @@ Functional modules are described below:
 <br>
 
 
-
-<br>
-####Transition planner algorithm
-<br>
