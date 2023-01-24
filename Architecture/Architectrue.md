@@ -197,7 +197,7 @@ The external actors in the following use case diagram, together with their inter
 <br>
 <br>
 
-2. **Algorithm**
+2. **Formulae**
 
 $$\begin{CD} MS^t = (T,\space D^t,\space W^t,\space R^t,\space S^t) @> (transition) >> MS^{t+1} = (T,\space 0D,\space 0W,\space 0R,\space optimal \space S^{t+1}) \\ @V USDT^{Postitive} VV @A USDT^{Negative} AA \\ MS_U^t @>> (Implicit) > MS_U^{t+1} = (T,\space 0D,\space 0W,\space 0R,\space FOP(Total \space USDT))  \\ @V ElementWiseSum VV @A zeros, \space {FOP} AA \\ Total \space USDT @> Identity \space transformation >> Total \space USDT \end{CD}$$
 , where 0D, 0D, and 0R are a vector of zero values in their respective vector lengths.
