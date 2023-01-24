@@ -2,7 +2,6 @@
 
 ## <p style="text-align: center;">Brainstorming the architecture of asset management</p>
 
-
 ### 1. Specifying system requirements
 <br/>
 Mozaic system has aggregational and DAO use cases.
@@ -28,12 +27,10 @@ The use cases and external actors are identified as below:
 - **Staking pool**: This actor is a smart contract that allocates reward to assets that are staked in it. Examples are farming pools on CBridge and Stargate DeFis. <br><br>
 
 Asset management of the system has the following State Machine:
-<br><br>
 
 <p align="center">
   <img src=".\High-leve state machine 1.0.PNG" width="1280" title="high-level use cases">
 </p>
-<br>
 
 <div style="page-break-after: always;"></div>
 
@@ -45,7 +42,6 @@ The design decisions are as illustrated in the following figure:
 <p align="center">
   <img src=".\High-level functional modules 1.0.PNG" width="1280" title="high-level functional modules">
 </p>
-<br>
 
 Functional modules are described below:
 - **Secondary valut contract**: This module is a smart contract and deployed on each chain except the home chain. It participates in the cooperation with its peer **Secondary vault contract**s to implement **Execute fund flow**, This module has at least the following private operations that work locally on its chain:
@@ -134,7 +130,6 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
     Note: We assume reward on $PS_i$ is calculated as:
 
     $MozaicReward_i = \frac {\normalsize RewardRate_i}{\normalsize TotakStake_i} \times MozaicStake_i $
-<br>
 
 - **Token vectors**
 
@@ -155,8 +150,6 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
         $Tokens = (UserTokens, RewardTokens, StakingTokens)$
 
-<br>
-
 - **Asset vectors**
 
     - **Vector of booked deposit requests**, at time index $t$
@@ -176,8 +169,6 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
     - **Vector of staked assets**, at time index $t$
 
         $Stakes^t = \{S_i^t | D_i^t: stake \space amount, at \space time \space t, \space denominated \space by \space StakingToken_i. i=1..M \}$
-
-<br>
 
 - **Transformations**
 
@@ -203,8 +194,6 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
         $ElementWiseSum$ sums up all elements of a vector.
 
-<br>
-
 - **Mozaic's asset state**, at transition $t$
 
     - Asset snapshot just before the transition that takes place at time $t$:
@@ -220,8 +209,6 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
         Or, simply, $MS^{t+} = (T, 0D, - \space 0W, 0R, optimal \space S^t)$
 
         , where 0D, 0D, and 0R are a vector of zero values in their respective vector lengths.
-
-<br>
 <br>
 
 #### 4.2 **Formulae**
