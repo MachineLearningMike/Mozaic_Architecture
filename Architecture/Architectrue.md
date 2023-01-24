@@ -167,15 +167,15 @@ The external actors in the following use case diagram, together with their inter
 
 - **Transformations**
 
-    - **$USDT^{Plus}$**
+    - **$USDT^{Positive}$**
 
-        $USDT^{Plus}$ transforms a Tokens-denominated asset vector to USDT-denominated vector, with market exchange rates.
+        $USDT^{Positive}$ transforms a Tokens-denominated asset vector to USDT-denominated vector, with market exchange rates.
 
         Example: $USDT^{+}$ transforms (1, 2, 3) to (1, 2.02, 1300), assuming UserTokens = (USDT, USDC, ETH) and USDT/USDC = 1.01 and USDT/ETH = 1300.
 
-    - **$USDT^{Minus}$**
+    - **$USDT^{Negative}$**
 
-        $USDT^{Minus}$ transforms a USDT-denominated asset vector to Tokens-denominated vector, with market exchange rates.
+        $USDT^{Negative}$ transforms a USDT-denominated asset vector to Tokens-denominated vector, with market exchange rates.
 
         Example: $USDT^{-}$ transforms (1, 2.02, 1300) to (1, 2, 3), assuming UserTokens = (USDT, USDC, ETH) and USDT/USDC = 1.01 and USDT/ETH = 1300.
 
@@ -199,9 +199,22 @@ The external actors in the following use case diagram, together with their inter
 
 2. **Algorithm**
 
-$$\begin{CD} MS^t = (T, D^t, W^t, R^t, S^t) @> (Resulting \space transition) >> MS^{t+1} = (T, 0D, 0W, 0R, optimal \space S^{t+1}) \\ @V USDT^{Plus} VV @A USDT^{Minus} AA \\ MS_U^t @>> (Implicit) > MS_U^{t+1} = (T, 0D, 0W, 0R, FOP(Total \space USDT))  \\ @V ElementWiseSum VV @A zeros, \space {FOP} AA \\ Total \space USDT @> Identity \space transformation >> Total \space USDT \end{CD}$$
+$$\begin{CD} MS^t = (T,\space D^t,\space W^t,\space R^t,\space S^t) @> (transition) >> MS^{t+1} = (T,\space 0D,\space 0W,\space 0R,\space optimal \space S^{t+1}) \\ @V USDT^{Postitive} VV @A USDT^{Negative} AA \\ MS_U^t @>> (Implicit) > MS_U^{t+1} = (T,\space 0D,\space 0W,\space 0R,\space FOP(Total \space USDT))  \\ @V ElementWiseSum VV @A zeros, \space {FOP} AA \\ Total \space USDT @> Identity \space transformation >> Total \space USDT \end{CD}$$
 , where 0D, 0D, and 0R are a vector of zero values in their respective vector lengths.
-<br><br>
+
+The whole algorithm is a chain of transformations:
+**$optimial \space S^{t+1} = USDT^{Negative} * FOP * ElementWiseSum * USDT^{Positive} (T, \space D^t, \space W^t, \space R^t, \space S^t)$**
+
+- $USDT^{Positive}$ and $USDT^{Negative}$ are obvious, except that we may need systematical methods to find best Dexes and swap paths.
+- FOP is solved analytically, demonstrating about 9% of competitive edge over the public.
+- ElementWiseSum is trivial.
+- $D^t and W^t$ can be retrieved from the booked requests of deposits and withdrawals.
+- $S^t$ is found when we "Collect reward" pending rewards.
+
+<br>
+
+
+
 
 
 <div style="page-break-after: always;"></div>
