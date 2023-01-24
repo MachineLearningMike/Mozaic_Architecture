@@ -141,15 +141,16 @@ Note 2. Algorithm is presented in images, becasue LaTex edits were rendered but 
 <br>
 
 
-2. **Algorithm**
-
 <p align="center">
   <img src=".\Algorithm.PNG" width="1280">
 </p>
 <br>
 
-( The image is blurred, but there is $USDT^{+}$ on the left top-down transformation column and  $USDT^{-}$ on the right bottom-up one.)
+All transformations are solved, including FOP.
+
 
 <div style="page-break-after: always;"></div>
+<br>
 
 #### 5. Algorithm of Transition planner
+
