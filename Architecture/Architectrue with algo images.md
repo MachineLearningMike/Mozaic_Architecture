@@ -146,6 +146,11 @@ Note 2. Algorithm is presented in images, becasue LaTex edits were rendered but 
 </p>
 <br>
 
+All transformations are solved, including FOP.
+
+
 <div style="page-break-after: always;"></div>
+<br>
 
 #### 5. Algorithm of Transition planner
+
