@@ -19,12 +19,12 @@ The use cases and external actors are described below:
 - **Execute fund flow**: This use case checks, carry out, and keeps track of assets move. The assets managed by the system can only be moved by this use case transparently.
 - **Deposit**: This use case deposit the user's assets in the system. **User** calls this use case in the hope that Mozaic system will **Optimize staking** of the deposited assets for them. This use case includes **Execute fund flow**.
 - **Withdraw**: This use case withdraws from the user's rewards and, if needed, deposited assets. (The deposited assets are increased by perpetual compounding of rewards.) **User** calls this use case. This use case includes **Execute fund flow**.
-- **Optimize staking**: This use case upgrades the staking of deposited assets to maximize rewards. **Profit generator**, a role of the system, calls this use case *either on a regular basis or at randome times*. This use case includes **Execute fund flow** and **Compound**. *By providing **Execute fund flow** with **staking_plan**, this use case effectively prevents it from being involved with finding optimal staking portfolio.*
+- **Optimize staking**: This use case upgrades the staking of deposited assets to maximize rewards. **Profit generator**, a role of the system, calls this use case *either on a regular basis or at randomly picked times*. This use case includes **Execute fund flow** and **Compound**. *By providing **Execute fund flow** with **staking_plan**, this use case effectively prevents it from being involved with finding optimal staking portfolio.*
 - **Trade**: This use case swaps idle assets to get profit by using price changes. It calls **Dex**. *By providing **Execute fund flow** with **trading_plan**, this use case effectively prevents it from being involved with finding optimal trading orders.*
 - **Collect reward**: This use case  collects rewards from Staking pools. Use case Execute fund flow, when it is working under **Optimize staking**, is extended by this use case. This use case calls Staking pool.
-- **Move staking asset**: This use case move assets to/between/from, **Staking pools**. **Execute fund flow**, when it is working under Optimize staking, is extended byt this use case. This use case calls Staking pool.
-- **Dex**: This actor is a smart contract that swaps between assets. Examples are pairs on Curve and Balancer DeFies.
-- **Staking pool**: This actor is a smart contract that allocates reward to assets that are staked in it. Examples are farming pools on CBridge and Stargate DeFies.
+- **Move staking asset**: This use case move assets to/between/from, **Staking pools**. **Execute fund flow**, when it is working under Optimize staking, is extended by this use case. This use case calls Staking pool.
+- **Dex**: This actor is a smart contract that swaps between assets. Examples are pairs on Curve and Balancer DeFis.
+- **Staking pool**: This actor is a smart contract that allocates reward to assets that are staked in it. Examples are farming pools on CBridge and Stargate DeFis.
 <br><br>
 
 <div style="page-break-after: always;"></div>
@@ -71,7 +71,7 @@ Functional modules are described below:
 <br>
 
 We have identified vaults through their surrounding modules interacting with them.
-The external actors in the following use case diagram, together with their interactions with vaults are already describled above. We can now explore the use cases of vault.
+The external actors in the following use case diagram, together with their interactions with vaults are already described above. We can now explore the use cases of vault.
 
 <p align="center">
   <img src=".\Vault use cases 1.0.PNG" width="1280" title="vault use cases">
@@ -88,7 +88,7 @@ The external actors in the following use case diagram, together with their inter
     - mints LP tokens to cover the new fund, 
     - returns the LP tokens to **User wallet**,
     - and helps **Transition to new staking** stake the fund.
-- **_Withdraw**: This is what happens at the level of vault contracts when **Withdraw** use case is invoked at the system level. Invoked by **User wallet** wih LP tokens returned, this used case coordinates the following two use cases.
+- **_Withdraw**: This is what happens at the level of vault contracts when **Withdraw** use case is invoked at the system level. Invoked by **User wallet** with LP tokens returned, this used case coordinates the following two use cases.
 - **Book withdraw**: This use case 
     - collects the returned LP tokens,
     - burns the collected LP tokens,
@@ -110,6 +110,8 @@ The external actors in the following use case diagram, together with their inter
 <div style="page-break-after: always;"></div>
 
 #### 4. Algorithm of Staking planner
+
+Note. All errors, like numerical processing rounding and price slippage, are ignored at this stage of architectural design.
 
 1. **Definition**
 
@@ -199,7 +201,9 @@ The external actors in the following use case diagram, together with their inter
 
 2. **Formulae**
 
-$$\begin{CD} MS^t = (T,\space D^t,\space W^t,\space R^t,\space S^t) @> (transition) >> MS^{t+1} = (T,\space 0D,\space 0W,\space 0R,\space optimal \space S^{t+1}) \\ @V USDT^{Postitive} VV @A USDT^{Negative} AA \\ MS_U^t @>> (Implicit) > MS_U^{t+1} = (T,\space 0D,\space 0W,\space 0R,\space FOP(Total \space USDT))  \\ @V ElementWiseSum VV @A zeros, \space {FOP} AA \\ Total \space USDT @> Identity \space transformation >> Total \space USDT \end{CD}$$
+$$\begin{CD} MS^t = (T,\space D^t,\space W^t,\space R^t,\space S^t) @> (Resulting \space transition) >> MS^{t+1} = (T,\space 0D,\space 0W,\space 0R,\space optimal \space S^{t+1}) \\ @V USDT^{Postitive} VV @A USDT^{Negative} AA \\ MS_U^t @>> (Implicit) > MS_U^{t+1} = (T,\space 0D,\space 0W,\space 0R,\space FOP(Total \space USDT))  \\ @V ElementWiseSum VV @A zeros, \space {FOP} AA \\ Total \space USDT @> Identity \space transformation >> Total \space USDT \end{CD}$$
+
+
 , where 0D, 0D, and 0R are a vector of zero values in their respective vector lengths.
 
 The whole algorithm is a chain of transformations:
