@@ -26,9 +26,7 @@ The use cases and external actors are identified as below:
 - **Move staking asset**: This use case move assets to/between/from, **Staking pools**. **Execute fund flow**, when it is working under Optimize staking, is extended by this use case. This use case calls Staking pool.
 - **Dex**: This actor is a smart contract that swaps between assets. Examples are pairs on Curve and Balancer DeFis.
 - **Staking pool**: This actor is a smart contract that allocates reward to assets that are staked in it. Examples are farming pools on CBridge and Stargate DeFis.
-<br><br>
 
-<br/>
 Asset management of the system has the following State Machine:
 <br><br>
 
