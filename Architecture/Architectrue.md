@@ -25,10 +25,8 @@ The use cases and external actors are identified as below:
 - **Collect reward**: This use case  collects rewards from Staking pools. Use case Execute fund flow, when it is working under **Optimize staking**, is extended by this use case. This use case calls Staking pool.
 - **Move staking asset**: This use case move assets to/between/from, **Staking pools**. **Execute fund flow**, when it is working under Optimize staking, is extended by this use case. This use case calls Staking pool.
 - **Dex**: This actor is a smart contract that swaps between assets. Examples are pairs on Curve and Balancer DeFis.
-- **Staking pool**: This actor is a smart contract that allocates reward to assets that are staked in it. Examples are farming pools on CBridge and Stargate DeFis.
-<br><br>
+- **Staking pool**: This actor is a smart contract that allocates reward to assets that are staked in it. Examples are farming pools on CBridge and Stargate DeFis. <br><br>
 
-<br/>
 Asset management of the system has the following State Machine:
 <br><br>
 
@@ -230,7 +228,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
 If a state transition takes place at time $t$, Mozaic's asset state $MS^t$ changes to $MS^{t+}$ as shown in the following diagram: <br><br>
 
-$$\begin{CD} MS^t = (T,\space D^t,\space - \space W^t,\space R^t,\space S^t) @> (Resulting \space transition) >> MS^{t+} = (T,\space 0D,\space - \space 0W,\space 0R,\space optimal \space S^t) \\ @V USDT^{+1} VV @A USDT^{-1} AA \\ \bar MS_U^t @>> (Implicit) > MS_U^{t+1} = (T,\space 0D,\space - \space 0W,\space 0R,\space FOP(Total \space in \space USDT))  \\ @V Sum VV @A zeros, \space {FOP} AA \\ Total \space in \space USDT @> Identity >> Total \space in \space USDT \end{CD}$$
+$$\begin{CD} MS^t = (T,\space D^t,\space - \space W^t,\space R^t,\space S^t) @> (Resulting \space transition) >> MS^{t+} = (T,\space 0D,\space - \space 0W,\space 0R,\space optimal \space S^t) \\ @V USDT^{+1} VV @A USDT^{-1} AA \\  MS_U^t @>> (Implicit) > MS_U^{t+1} = (T,\space 0D,\space - \space 0W,\space 0R,\space FOP(Total \space in \space USDT))  \\ @V Sum VV @A zeros, \space {FOP} AA \\ Total \space in \space USDT @> Identity >> Total \space in \space USDT \end{CD}$$
 <br>
 
 The algorithm for Staking planner $MS^t$ is a chain of transformations:
