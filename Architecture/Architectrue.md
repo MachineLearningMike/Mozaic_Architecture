@@ -1,25 +1,26 @@
 
 
-### <p style="text-align: center;">Brainstorming the architecture of asset management</p>
+## <p style="text-align: center;">Brainstorming the architecture of asset management</p>
 
 
-#### 1. Specifying system requirements
+### 1. Specifying system requirements
 <br/>
 Mozaic system has aggregational and DAO use cases.
 Aggregational use cases are shown in the following figure:
 <br><br>
+
 
 <p align="center">
   <img src=".\High-level use cases 1.0.PNG" width="1280" title="high-level use cases">
 </p>
 <br>
 
-The use cases and external actors are described below:
+The use cases and external actors are identified as below:
 - **Compound**: This hidden use case compounds rewards. Idle assets should not ba allowed, and all rewards should be compounded as much and soon as possible.
-- **Execute fund flow**: This use case checks, carry out, and keeps track of assets move. The assets managed by the system can only be moved by this use case transparently.
-- **Deposit**: This use case deposit the user's assets in the system. **User** calls this use case in the hope that Mozaic system will **Optimize staking** of the deposited assets for them. This use case includes **Execute fund flow**.
-- **Withdraw**: This use case withdraws from the user's rewards and, if needed, deposited assets. (The deposited assets are increased by perpetual compounding of rewards.) **User** calls this use case. This use case includes **Execute fund flow**.
-- **Optimize staking**: This use case upgrades the staking of deposited assets to maximize rewards. **Profit generator**, a role of the system, calls this use case *either on a regular basis or at randomly picked times*. This use case includes **Execute fund flow** and **Compound**. *By providing **Execute fund flow** with **staking_plan**, this use case effectively prevents it from being involved with finding optimal staking portfolio.*
+- **Execute fund flow**: This use case checks, carry out, and keeps track of asset moves. The assets managed by the system can only be moved by this use case transparently.
+- **Deposit**: This use case deposits the user's assets in the system. **User** calls this use case in the hope that Mozaic system will **Optimize staking** of the deposited assets for them. **User** should be able to deposit any token that is listed on Mozaic on any chain where Mozaic is deployed. This use case includes **Execute fund flow**.
+- **Withdraw**: This use case withdraws from the user's rewards and, if needed, deposited assets. **User** should be able to withdraw any token that is listed on Mozaic on any chain where Mozaic is deployed, no matter they deposited what token on which chain. (The deposited assets are increased by perpetual compounding of rewards.) **User** invokes this use case. This use case includes **Execute fund flow**.
+- **Optimize staking**: This use case upgrades the staking of deposited assets to maximize rewards. **Profit generator**, a role of the system, invokes this use case *either on a regular basis or at randomly picked times*. This use case includes **Execute fund flow** and **Compound**. *By providing **Execute fund flow** with **staking_plan**, this use case effectively prevents it from being involved with finding optimal staking portfolio.*
 - **Trade**: This use case swaps idle assets to get profit by using price changes. It calls **Dex**. *By providing **Execute fund flow** with **trading_plan**, this use case effectively prevents it from being involved with finding optimal trading orders.*
 - **Collect reward**: This use case  collects rewards from Staking pools. Use case Execute fund flow, when it is working under **Optimize staking**, is extended by this use case. This use case calls Staking pool.
 - **Move staking asset**: This use case move assets to/between/from, **Staking pools**. **Execute fund flow**, when it is working under Optimize staking, is extended by this use case. This use case calls Staking pool.
@@ -27,9 +28,18 @@ The use cases and external actors are described below:
 - **Staking pool**: This actor is a smart contract that allocates reward to assets that are staked in it. Examples are farming pools on CBridge and Stargate DeFis.
 <br><br>
 
+<br/>
+Asset management of the system has the following State Machine:
+<br><br>
+
+<p align="center">
+  <img src=".\High-leve state machine 1.0.PNG" width="1280" title="high-level use cases">
+</p>
+<br>
+
 <div style="page-break-after: always;"></div>
 
-#### 2. Identifying vaults through its surrounding modules
+### 2. Identifying vaults through its surrounding modules
 <br>
 As the first implementation step, we identify the module that executes use case **Execute fund flow**, as it seems to act as the controller and be one of unique features of the system.
 The design decisions are as illustrated in the following figure:
@@ -67,7 +77,7 @@ Functional modules are described below:
 
 <div style="page-break-after: always;"></div>
 
-#### 3. Exploring vaults
+### 3. Exploring vaults
 <br>
 
 We have identified vaults through their surrounding modules interacting with them.
@@ -109,11 +119,11 @@ The external actors in the following use case diagram, together with their inter
 
 <div style="page-break-after: always;"></div>
 
-#### 4. Algorithm of Staking planner
+### 4. Algorithm of Staking planner
 
 Note. All errors, like numerical processing rounding and price slippage, are ignored at this stage of architectural design.
 
-1. **Definition**
+#### 4.1 **Definition**
 
 - **Pools state**
 
@@ -121,7 +131,11 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
     where $PS_i$ is the $i$-th pool state: 
 
-    $PS_i = (RewardRate_i, RewardToken_i, TotalStaking_i, StakingToken_i, MozaicStaking_i)$
+    $PS_i = (RewardRate_i, RewardToken_i, TotalStake_i, StakingToken_i, MozaicStake_i)$
+
+    Note: We assume reward on $PS_i$ is calculated as:
+
+    $MozaicReward_i = \frac {\normalsize RewardRate_i}{\normalsize TotakStake_i} \times MozaicStake_i $
 <br>
 
 - **Token vectors**
@@ -149,67 +163,81 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
     - **Vector of booked deposit requests**, at time index $t$
     
-        $Deposits^t = \{D_i^t | D_i^t: Deposit \space amount, at \space time \space t, \space denominated \space by \space UserToken_i. i=1..M \}$
+        $Deposits^t = \{D_i^t | D_i^t: deposit \space amount, at \space time \space t, \space denominated \space by \space UserToken_i. i=1..M \}$
 
         Example: $Deposits^t$ of {1, 2, 3} means {1 USDT, 2 USDC, 3 ETH}, assuming $UserTokens = \{USDT, USDC, ETH\}$
 
     - **Vector of booked withdrawals requests**, at time index $t$
 
-        $Withdrawals^t = \{W_i^t | D_i^t: Withdrawal \space amount, at \space time \space t, \space denominated \space by \space UserToken_i. i=1..M \}$
+        $Withdrawals^t = \{W_i^t | D_i^t: withdrawal \space amount, at \space time \space t, \space denominated \space by \space UserToken_i. i=1..M \}$
 
     - **Vector of collected rewards**, at time index $t$
 
-        $Rewards^t = \{R_i^t | D_i^t: Reward \space amount, at \space time \space t, \space denominated \space by \space RewardToken_i. i=1..M \}$
+        $Rewards^t = \{R_i^t | D_i^t: reward \space amount, at \space time \space t, \space denominated \space by \space RewardToken_i. i=1..M \}$
 
     - **Vector of staked assets**, at time index $t$
 
-        $Stakes^t = \{S_i^t | D_i^t: Stake \space amount, at \space time \space t, \space denominated \space by \space StakingToken_i. i=1..M \}$
+        $Stakes^t = \{S_i^t | D_i^t: stake \space amount, at \space time \space t, \space denominated \space by \space StakingToken_i. i=1..M \}$
 
 <br>
 
 - **Transformations**
 
-    - **$USDT^{Positive}$**
+    - **Transformation $USDT^{+1}$**
 
-        $USDT^{Positive}$ transforms a Tokens-denominated asset vector to USDT-denominated vector, with market exchange rates.
+        $USDT^{+1}$ transforms a Tokens-denominated asset vector to USDT-denominated vector, with market exchange rates.
 
         Example: $USDT^{+}$ transforms (1, 2, 3) to (1, 2.02, 1300), assuming UserTokens = (USDT, USDC, ETH) and USDT/USDC = 1.01 and USDT/ETH = 1300.
 
-    - **$USDT^{Negative}$**
+    - **Transformation $USDT^{-1}$**
 
-        $USDT^{Negative}$ transforms a USDT-denominated asset vector to Tokens-denominated vector, with market exchange rates.
+        $USDT^{-1}$ transforms a USDT-denominated asset vector to Tokens-denominated vector, with market exchange rates.
 
-        Example: $USDT^{-}$ transforms (1, 2.02, 1300) to (1, 2, 3), assuming UserTokens = (USDT, USDC, ETH) and USDT/USDC = 1.01 and USDT/ETH = 1300.
+        Example: $USDT^{-1}$ transforms (1, 2.02, 1300) to (1, 2, 3), assuming UserTokens = (USDT, USDC, ETH) and USDT/USDC = 1.01 and USDT/ETH = 1300.
 
-    - **$FOP$**
+    - **Transformation $FOP$**
+
         $FOP$, standing for Find Optimal Portfolio, finds the best USDT-denominated vector of staked assets, for a given total USDT amount.
 
         Example: $FOP$ transforms (12345) to the best staking of 123 USDT over staking pools, and has the format of USDT-denominated $Stakes^t$, like (100, 20, 3) all in USDT, assuming we have total 3 pools.
 
-    - **$ElementWiseSum$**
+    - **Transformation $Sum$**
+
         $ElementWiseSum$ sums up all elements of a vector.
 
 <br>
 
-- **Mozaic's asset state**, at time $t$
+- **Mozaic's asset state**, at transition $t$
 
-    $MS^t = (Tokens, Deposits^t, Withdrawals^t, Rewards^t, Stakes^t)$
+    - Asset snapshot just before the transition that takes place at time $t$:
 
-    Or, simply, $MS^t = (T, D^t, W^t, R^t, S^t)$
+        $MS^t = (Tokens, Deposits^t, - \space Withdrawals^t, Rewards^t, Stakes^t)$
+
+        Or, simply, $MS^t = (T, D^t, - \space W^t, R^t, S^t)$
+
+    - Asset snapshot just after the transition that takes place at time $t$:
+
+        $MS^{t+} = (Tokens, 0D, - \space 0Withdrawals, 0Rewards, optimal \space Stakes^t)$
+
+        Or, simply, $MS^{t+} = (T, 0D, - \space 0W, 0R, optimal \space S^t)$
+
+        , where 0D, 0D, and 0R are a vector of zero values in their respective vector lengths.
+
 <br>
 <br>
 
-2. **Formulae**
+#### 4.2 **Formulae**
 
-$$\begin{CD} MS^t = (T,\space D^t,\space W^t,\space R^t,\space S^t) @> (Resulting \space transition) >> MS^{t+1} = (T,\space 0D,\space 0W,\space 0R,\space optimal \space S^{t+1}) \\ @V USDT^{Postitive} VV @A USDT^{Negative} AA \\ MS_U^t @>> (Implicit) > MS_U^{t+1} = (T,\space 0D,\space 0W,\space 0R,\space FOP(Total \space USDT))  \\ @V ElementWiseSum VV @A zeros, \space {FOP} AA \\ Total \space USDT @> Identity \space transformation >> Total \space USDT \end{CD}$$
+If a state transition takes place at time $t$, Mozaic's asset state $MS^t$ changes to $MS^{t+}$ as shown in the following diagram: <br><br>
 
+$$\begin{CD} MS^t = (T,\space D^t,\space - \space W^t,\space R^t,\space S^t) @> (Resulting \space transition) >> MS^{t+} = (T,\space 0D,\space - \space 0W,\space 0R,\space optimal \space S^t) \\ @V USDT^{+1} VV @A USDT^{-1} AA \\ \bar MS_U^t @>> (Implicit) > MS_U^{t+1} = (T,\space 0D,\space - \space 0W,\space 0R,\space FOP(Total \space in \space USDT))  \\ @V Sum VV @A zeros, \space {FOP} AA \\ Total \space in \space USDT @> Identity >> Total \space in \space USDT \end{CD}$$
+<br>
 
-, where 0D, 0D, and 0R are a vector of zero values in their respective vector lengths.
+The algorithm for Staking planner $MS^t$ is a chain of transformations:
 
-The whole algorithm is a chain of transformations:
-**$optimial \space S^{t+1} = USDT^{Negative} * FOP * ElementWiseSum * USDT^{Positive} (T, \space D^t, \space W^t, \space R^t, \space S^t)$**
+$optimial \space S^{t} = USDT^{-1} \circ FOP \circ Sum \circ USDT^{+1} (T, \space D^t, \space - \space W^t, \space R^t, \space S^t)$ <br><br>
 
-- $USDT^{Positive}$ and $USDT^{Negative}$ are obvious, except that we may need systematical methods to find best Dexes and swap paths.
+- $USDT^{+1}$ and $USDT^{-1}$ are obvious, except that we may need systematical methods to find best Dexes and swap paths.
 - FOP is solved analytically, demonstrating about 9% of competitive edge over the public.
 - ElementWiseSum is trivial.
 - $D^t and W^t$ can be retrieved from the booked requests of deposits and withdrawals.
@@ -223,4 +251,4 @@ The whole algorithm is a chain of transformations:
 
 <div style="page-break-after: always;"></div>
 
-#### 5. Algorithm of Transition planner
+### 5. Algorithm of Transition planner
