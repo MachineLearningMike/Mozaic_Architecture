@@ -202,7 +202,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
     - Asset snapshot just after the transition that takes place at time $t$:
 
-        $MS^{t+} = (Tokens, 0D, - \space 0Withdrawals, 0Rewards, optimal \space Stakes^t)$
+        $MS^{t+} = (Tokens, 0Deposits, - \space 0Withdrawals, 0Rewards, optimal \space Stakes^t)$
 
         Or, simply, $MS^{t+} = (T, 0D, - \space 0W, 0R, optimal \space S^t)$
 
