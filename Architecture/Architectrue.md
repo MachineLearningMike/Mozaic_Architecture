@@ -6,25 +6,24 @@
 <br/>
 Mozaic system has aggregational and DAO use cases.
 Aggregational use cases are shown in the following figure:
-<br><br>
-
+<br>
 
 <p align="center">
   <img src=".\High-level use cases 1.0.PNG" width="1280" title="high-level use cases">
 </p>
-<br>
+
 
 The use cases and external actors are identified as below:
 - **Compound**: This hidden use case compounds rewards. Idle assets should not ba allowed, and all rewards should be compounded as much and soon as possible.
 - **Execute fund flow**: This use case checks, carry out, and keeps track of asset moves. The assets managed by the system can only be moved by this use case transparently.
-- **Deposit**: This use case deposits the user's assets in the system. **User** calls this use case in the hope that Mozaic system will **Optimize staking** of the deposited assets for them. **User** should be able to deposit any token that is listed on Mozaic on any chain where Mozaic is deployed. This use case includes **Execute fund flow**.
+- **Deposit**: This use case deposits the user's assets in the system. **User** invokes this use case in the hope that Mozaic system will **Optimize staking** of the deposited assets for them. **User** should be able to deposit any token that is listed on Mozaic on any chain where Mozaic is deployed. This use case includes **Execute fund flow**.
 - **Withdraw**: This use case withdraws from the user's rewards and, if needed, deposited assets. **User** should be able to withdraw any token that is listed on Mozaic on any chain where Mozaic is deployed, no matter they deposited what token on which chain. (The deposited assets are increased by perpetual compounding of rewards.) **User** invokes this use case. This use case includes **Execute fund flow**.
 - **Optimize staking**: This use case upgrades the staking of deposited assets to maximize rewards. **Profit generator**, a role of the system, invokes this use case *either on a regular basis or at randomly picked times*. This use case includes **Execute fund flow** and **Compound**. *By providing **Execute fund flow** with **staking_plan**, this use case effectively prevents it from being involved with finding optimal staking portfolio.*
 - **Trade**: This use case swaps idle assets to get profit by using price changes. It calls **Dex**. *By providing **Execute fund flow** with **trading_plan**, this use case effectively prevents it from being involved with finding optimal trading orders.*
-- **Collect reward**: This use case  collects rewards from Staking pools. Use case Execute fund flow, when it is working under **Optimize staking**, is extended by this use case. This use case calls Staking pool.
-- **Move staking asset**: This use case move assets to/between/from, **Staking pools**. **Execute fund flow**, when it is working under Optimize staking, is extended by this use case. This use case calls Staking pool.
+- **Collect reward**: This use case  collects rewards from Staking pools. Use case Execute fund flow, when it is working under **Optimize staking**, is extended by this use case. This use case calls **Staking pool**.
+- **Move staking asset**: This use case move assets to/between/from, **Staking pools**. **Execute fund flow**, when it is working under Optimize staking, is extended by this use case. This use case calls **Staking pool**.
 - **Dex**: This actor is a smart contract that swaps between assets. Examples are pairs on Curve and Balancer DeFis.
-- **Staking pool**: This actor is a smart contract that allocates reward to assets that are staked in it. Examples are farming pools on CBridge and Stargate DeFis. <br><br>
+- **Staking pool**: This actor is a smart contract that allocates reward to assets that are staked in it. Examples are farming pools on CBridge and Stargate DeFis. <br>
 
 Asset management of the system has the following State Machine:
 
@@ -44,9 +43,7 @@ The design decisions are as illustrated in the following figure:
 </p>
 
 Functional modules are described below:
-- **Secondary valut contract**: This module is a smart contract and deployed on each chain except the home chain. It participates in the cooperation with its peer **Secondary vault contract**s to implement **Execute fund flow**, This module has at least the following private operations that work locally on its chain:
-    - collect_reward(...)
-    - move_staking_asset(...)
+- **Secondary valut contract**: This module is a smart contract and deployed on each chain except the home chain. It participates in the cooperation with its peer **Secondary vault contract**s to implement **Execute fund flow**, This module has at least the following private operations that work locally on its chain: collect_reward(...) and move_staking_asset(...)
 - **Master vault contract**: This module is a smart contract, has global operations, in addition to the local operations inherited from **Secondary vault contract**, and is deployed on one and only one of the chains, called **Home chain**, where it takes the role of **Secondary vault contract**, as well as the the unique role of the master vault operating **LP token contract**.
 - **LP token contract**: This module manages the LP token balances of **User**s, which represents the their proportional share of the total assets of the system. Their share comprises of their deposited assets plus automatic compounding. *It is a deliberate design decision that the LP token only exists on **Home chain**.*
 - **User wallet**: This is a blockchain wallet and identifies a **User**. **User**'s actions; like deposit, withdraw, and harvest; are authenticated/authorized with this wallet.
@@ -130,6 +127,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
     Note: We assume reward on $PS_i$ is calculated as:
 
     $MozaicReward_i = \frac {\normalsize RewardRate_i}{\normalsize TotakStake_i} \times MozaicStake_i $
+<br>
 
 - **Token vectors**
 
@@ -149,7 +147,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
     - **Tokens vector**
 
         $Tokens = (UserTokens, RewardTokens, StakingTokens)$
-
+<br>
 - **Asset vectors**
 
     - **Vector of booked deposit requests**, at time index $t$
@@ -169,7 +167,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
     - **Vector of staked assets**, at time index $t$
 
         $Stakes^t = \{S_i^t | D_i^t: stake \space amount, at \space time \space t, \space denominated \space by \space StakingToken_i. i=1..M \}$
-
+<br>
 - **Transformations**
 
     - **Transformation $USDT^{+1}$**
@@ -193,7 +191,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
     - **Transformation $Sum$**
 
         $ElementWiseSum$ sums up all elements of a vector.
-
+<br>
 - **Mozaic's asset state**, at transition $t$
 
     - Asset snapshot just before the transition that takes place at time $t$:
@@ -215,7 +213,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
 If a state transition takes place at time $t$, Mozaic's asset state $MS^t$ changes to $MS^{t+}$ as shown in the following diagram: <br><br>
 
-$$\begin{CD} MS^t = (T,\space D^t,\space - \space W^t,\space R^t,\space S^t) @> (Resulting \space transition) >> MS^{t+} = (T,\space 0D,\space - \space 0W,\space 0R,\space optimal \space S^t) \\ @V USDT^{+1} VV @A USDT^{-1} AA \\  MS_U^t @>> (Implicit) > MS_U^{t+1} = (T,\space 0D,\space - \space 0W,\space 0R,\space FOP(Total \space in \space USDT))  \\ @V Sum VV @A zeros, \space {FOP} AA \\ Total \space in \space USDT @> Identity >> Total \space in \space USDT \end{CD}$$
+$$\begin{CD} \space \space  \space \space \space \space MS^t = (T,\space D^t,\space - \space W^t,\space R^t,\space S^t) @> (Resulting \space transition) >> MS^{t+} = (T,\space 0D,\space - \space 0W,\space 0R,\space optimal \space S^t)  \space  \space \space \space \space \space \space \space \space \\ @V USDT^{+1} VV @A USDT^{-1} AA \\  MS_U^t @>> (Implicit) > MS_U^{t+1} = (T,\space 0D,\space - \space 0W,\space 0R,\space FOP(Total \space in \space USDT)) \space \space \space \space \space \space \space \space \space \space\space \\ @V Sum VV @A zeros, \space {FOP} AA \\ Total \space in \space USDT @> Identity >> Total \space in \space USDT \end{CD}$$
 <br>
 
 The algorithm for Staking planner $MS^t$ is a chain of transformations:
