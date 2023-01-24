@@ -142,7 +142,7 @@ Note 2. Algorithm is presented in images, becasue LaTex edits were rendered but 
 
 
 <p align="center">
-  <img src=".\Algorithm.PNG" width="1280">
+  <img src=".\Formulae.PNG" width="1280">
 </p>
 <br>
 
