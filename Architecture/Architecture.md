@@ -306,7 +306,6 @@ $optimial \space S^{t} = USDT^{-1} \circ FOP \circ Sum \circ USDT^{+1} (T, \spac
 - Goal: Calculate best transition asset flow plan, in order to
     - Save vault contracts long calculations of staking optimization, thus to save gas.
     - Keep vault contract insulated from future algorithm upgrades of staking optimization.
-
 <br>
 - Consideration
 
