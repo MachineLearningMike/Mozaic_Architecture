@@ -277,6 +277,7 @@ $optimial \space S^{t} = USDT^{-1} \circ FOP \circ Sum \circ USDT^{+1} (T, \spac
 - Purpose
     - Save vault contracts huge calculation of the strategy of staking optimization, thus to save gas.
     - Insulate vault contracts from possible future algorithm upgrades.
+<br>
 
 - Input (see section 4. Algorithm of Staking planner, for their definitions)
     - $Deposits^t$
@@ -285,24 +286,14 @@ $optimial \space S^{t} = USDT^{-1} \circ FOP \circ Sum \circ USDT^{+1} (T, \spac
     - $Stakes^t$
     - $poolsInfo^t$
     - $optimal \space Stakes^{t+}$, or $optimal S^{t+}$
+<br>
 
 - Process
     - Find a step-by-step logical procedure of asset flow instructions that implements the following transition:
 
     $$\begin{CD} \space \space  \space \space \space \space MS^t = (T,\space D^t,\space - \space W^t,\space R^t,\space S^t) @> (Resulting \space transition) >> MS^{t+} = (T,\space 0D,\space - \space 0W,\space 0R,\space optimal \space S^t) \space  \space \space \space \space \space \space \space \space \end{CD}$$
-    
-    
-    - Asset snapshot just before the transition that takes place at time $t$:
 
-        $MS^t = (Tokens, Deposits^t, - \space Withdrawals^t, Rewards^t, Stakes^t)$
-
-        Or, simply, $MS^t = (T, D^t, - \space W^t, R^t, S^t)$
-
-    - Asset snapshot just after the transition that takes place at time $t$:
-
-        $MS^{t+} = (Tokens, 0D, - \space 0Withdrawals, 0Rewards, optimal \space Stakes^t)$
-
-        Or, simply, $MS^{t+} = (T, 0D, - \space 0W, 0R, optimal \space S^t)$
+<br>
 
 - Output
     - $assetFlowPlan^t$
