@@ -228,10 +228,6 @@ $optimial \space S^{t} = USDT^{-1} \circ FOP \circ Sum \circ USDT^{+1} (T, \spac
 
 <br>
 
-
-
-
-
 <div style="page-break-after: always;"></div>
 
 ### 5. Algorithm of Transition planner
