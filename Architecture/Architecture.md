@@ -253,7 +253,6 @@ $optimial \space S^{t} = USDT^{-1} \circ FOP \circ Sum \circ USDT^{+1} (T, \spac
 - ElementWiseSum is trivial.
 - $D^t and W^t$ can be retrieved from the booked requests of deposits and withdrawals.
 - $S^t$ is found when we "Collect reward" pending rewards.
-
 <br>
 
 <div style="page-break-after: always;"></div>
