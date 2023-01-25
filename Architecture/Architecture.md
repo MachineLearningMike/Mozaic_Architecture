@@ -141,8 +141,38 @@ The external actors in the following use case diagram, together with their inter
 ### 4. Algorithm of Staking planner
 
 Note. All errors, like numerical processing rounding and price slippage, are ignored at this stage of architectural design.
+<br>
 
-#### 4.1 **Definition**
+#### 4.1 Task definition
+
+- Goal: Calculate best staking portfolio, in order to
+    - Save vault contracts long calculations of staking optimization, thus to save gas.
+    - Keep vault contract insulated from future algorithm upgrades of staking optimization.
+- Consideration
+    - Input may not idealistically consistent inside itself, because idealistic snapshot of multiple chain state is impossible logically.
+    - Output staking portfolio may not be completely/perfectly implemented, because input may have errors and there are unpredictable price slippages sneaked into the calculation.
+<br>
+
+- Input
+    - Deposit requests currently booked
+    - Withdrawal requests currently booked
+    - Current pending rewards
+    - Current poolsInfo
+<br>
+
+- Process
+
+    (See below)
+
+<br>
+
+- Output
+
+    - optimal staking portfolio
+
+<br>
+
+#### 4.2 **Definition**
 
 - **Pools state**
 
@@ -237,7 +267,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
         , where 0D, 0D, and 0R are a vector of zero values in their respective vector lengths.
 <br>
 
-#### 4.2 **Formulae**
+#### 4.3 **Formulae**
 
 If a state transition takes place at time $t$, Mozaic's asset state $MS^t$ changes to $MS^{t+}$ as shown in the following diagram: <br><br>
 
@@ -270,12 +300,18 @@ $optimial \space S^{t} = USDT^{-1} \circ FOP \circ Sum \circ USDT^{+1} (T, \spac
 - If there is critics that solo LP version, which is naturally deployed on the home chain, will force Mozaic system to transfer to, or send LZ message to, the, non-home, chain on which the user wants to withdraw a token type, then we can say the message will rarely serve a single user but mostly several users in batch, because the withdrawals happen while transitioning to a new staking when all booked deposit requests are handled.
 <br>
 
-#### 5.2 Task definition of Transition planner
+#### 5.2 Task definition for Transition planner
 <br>
 
-- Purpose
-    - Save vault contracts huge calculation of the strategy of staking optimization, thus to save gas.
-    - Insulate vault contracts from possible future algorithm upgrades.
+- Goal: Calculate best transition asset flow plan, in order to
+    - Save vault contracts long calculations of staking optimization, thus to save gas.
+    - Keep vault contract insulated from future algorithm upgrades of staking optimization.
+
+<br>
+- Consideration
+
+    - Input may not idealistically consistent inside itself, because idealistic snapshot of multiple chain state is impossible logically.
+    - Output may not be completely/perfectly implemented, because input may have errors and there are unpredictable price slippages on Dexes.
 <br>
 
 - Input (see section 4. Algorithm of Staking planner, for their definitions)
@@ -292,14 +328,17 @@ $optimial \space S^{t} = USDT^{-1} \circ FOP \circ Sum \circ USDT^{+1} (T, \spac
 
     $$\begin{CD} \space \space  \space \space \space \space MS^t = (T,\space D^t,\space - \space W^t,\space R^t,\space S^t) @> (Resulting \space transition) >> MS^{t+} = (T,\space 0D,\space - \space 0W,\space 0R,\space optimal \space S^t) \space  \space \space \space \space \space \space \space \space \end{CD}$$
 
+    - Regularize the procedure by Removing mutually/transitively cancelling asset moves in the procedure
+    - 
+
 <br>
 
 - Output
     - $assetFlowPlan^t$
 
+<br>
 
-
-
+#### 5.3 Algorithm for Transition planner
 
 
 
