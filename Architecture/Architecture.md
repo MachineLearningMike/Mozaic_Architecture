@@ -360,7 +360,7 @@ The formula essentially does:
 
 <br>
 
-#### **5.3 Formulae**
+#### **5.3 Formulae** (under construction)
 
 - Both deposit and withdrawal have future tense.
     - when a user deposits, let them know approximate LP amount based on the past sync.
