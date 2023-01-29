@@ -61,7 +61,7 @@ We need a module that implements the use case **Control asset move** identified 
 
 <br>
 
-#### **2.1 Vault contracts: master and secondary**
+#### **2.1 Vaults as smart contract**
 According to the requirements, vaults are responsible to, exclusively and at the decentralization level,
 - keep track of all changes to asset/request state, defined in the previous section
 - execute all changes to asset/request state,
@@ -69,13 +69,32 @@ According to the requirements, vaults are responsible to, exclusively and at the
 <br>
 
 The only way is do deploy smart contracts on chains that cooperate with each other to form a vault module. We call them vaults or vault contracts.
+<br><br>
+
+#### **2.2 Vaults with limited responsibility**
 
 According to the requirements, vaults do *not* have to 
 - find an optimal asset state to **Optimize asset/request state** to
 - execute asset move requests, like assetMovePlan identified in requirements, strictly, because there will not be negative profit.
-<br>
+<br><br>
 
-The following 
+#### **2.3 Vaults' local responsibility - local transportation of token**
+- Pull asset from the user if a deposit involves a local token of asset to collect
+- Push LP to the user if a deposit involves the local LP token to return
+- Pull LP tokens from the user if a withdrawal involves the local LP token to collect
+- Push asset to the user if a withdrawal involves a local token of asset to return
+<br><br>
+
+#### **2.4 Vaults' local responsibility - local moves of Staking stock**
+- Collect rewards from local staking pools
+- 
+
+- Collect rewards from local staking pools
+- Pull asset from the user if a deposit involves a local token of asset to collect
+- Push LP to the user if a deposit involves the local LP token to return
+- Pull LP tokens from the user if a withdrawal involves the local LP token to collect
+- Push asset to the user if a withdrawal involves a local token of asset to return
+
 
 
 The design decisions are as illustrated in the following figure:
