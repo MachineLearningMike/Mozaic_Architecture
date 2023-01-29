@@ -1,36 +1,83 @@
 
 
-## <p style="text-align: center;">Brainstorming the architecture of asset management</p>
+## <p style="text-align: center;">Architectural Decisions</p>
 
-- Goal of document
-    - Serve as the project technical terminology
-    - Serve as an internal baseline for brainstorming and communications in between team members
-    - so, only to the extent that the team members get in the same page of discussion
-    - neither to the extent of publish quality nor educational quality
-- Scope of document
-    - Requirements, and architectural design deduced directly from the requirements
-    - Recommended design decisions and their explanation
-    - Major algorithms to debate on
+- Definition
+    - Mozaic, the system, and Mozaic system refers software system that this project is going to develops, launches, and operates.
+- Goal
+    - This document describes architectural decisions that implement the system requirements.
+    - This document serves as additional technical terminology of the project.
 <br>
 
 
-### 1. Specifying system requirements
-<br/>
+### **1. Overall state machine**
+<br>
 
+#### **1.1 Definition**
+<br>
+- **Asset state** is the state of what amounts of what tokens, including LP tokens, on what chains are, at the given moment of time, 
 
+    - deposited and pending staking
+    - staked
+    - rewarded and pending harvesting
+    - staying in system treasuries
+    - pending withdrawal
 
+- **Request state** is the state of what deposit/withdraw requests are accepted by the system and waiting for final processing, at the given moment of time.
+- If the system does **Optimize asset/request state**, it changes the states to earn optimal staking reward.
+<br><br>
 
+#### **1.2 Design decisions**
 
-Asset management of the system has the following State Machine:
+We choose Sleeping-then_Optimizing model for the overall system behavior. 
+- The system will not always be optimizing, but sleeping most of time accepting deposit/withdrawal requests from users.
+- If the system **accept**s a deposit request, it 
+    - collects the asset the user wants to deposit, (on the asset's chain)
+    - tells the user to wait until the next optimization round, when the system will send LP tokens to the user in return for the asset,
+    - and book the request with the system for later processing.
+- If the system **accept**s a withdraw request, it
+    - collects the LP tokens the user wants to return, (on the LP's chain)
+    - tells the user to wait until the next optimization round, when the system will send some asset of the requested token type,
+    - and book the request with the system for later processing.
+- The system will **optimize asset/request state** at regular or irregular intervals. The frequency of optimization rounds will be optimized, as frequent moves of asset may incur more costs while infrequent optimization rounds will hinder from quick maneuver of staking.
+- When entering the **Optimization process**, or the **Optimizing** state, the system will take a snapshot of asset/request state. Then the system transforms/changes the states to optimal states for maximum reward, while continuing to **accept** deposit/withdraw requests, which will be handled at the next round of optimization.
+<br><br>
+
+#### **1.3 Visual description**
+<br>
+The Sleeping-then_Optimizing model of behavior can be expressed in a UML State Machine diagram shown below:
+<br><br>
 
 <p align="center">
   <img src=".\High-leve state machine 1.0.PNG" width="1280" title="high-level use cases">
 </p>
 
 <div style="page-break-after: always;"></div>
+<br>
+
+### **2. Vaults**
+<br>
+We need a module that implements the use case **Control asset move** identified in the requirements specification, solely, and completely. We call the module the vault, for the following reasons.
 
 <br>
-As the first implementation step, we identify the module that executes use case **Control asset move**, as it seems to act as the controller and be one of unique features of the system.
+
+#### **2.1 Vault contracts: master and secondary**
+According to the requirements, vaults are responsible to, exclusively and at the decentralization level,
+- keep track of all changes to asset/request state, defined in the previous section
+- execute all changes to asset/request state,
+- log all changes to asset/request state.
+<br>
+
+The only way is do deploy smart contracts on chains that cooperate with each other to form a vault module. We call them vaults or vault contracts.
+
+According to the requirements, vaults do *not* have to 
+- find an optimal asset state to **Optimize asset/request state** to
+- execute asset move requests, like assetMovePlan identified in requirements, strictly, because there will not be negative profit.
+<br>
+
+The following 
+
+
 The design decisions are as illustrated in the following figure:
 <br><br>
 <p align="center">
@@ -38,7 +85,7 @@ The design decisions are as illustrated in the following figure:
 </p>
 
 Functional modules are described below:
-- **Secondary valut contract**: This module is a smart contract and deployed on each chain except the home chain. It participates in the cooperation with its peer **Secondary vault contract**s to implement **Control asset move**, This module has at least the following private operations that work locally on its chain: collect_reward(...) and move_staking_asset(...)
+- **Secondary vault contract**: This module is a smart contract and deployed on each chain except the home chain. It participates in the cooperation with its peer **Secondary vault contract**s to implement **Control asset move**, This module has at least the following private operations that work locally on its chain: collect_reward(...) and move_staking_asset(...)
 - **Master vault contract**: This module is a smart contract, has global operations, in addition to the local operations inherited from **Secondary vault contract**, and is deployed on one and only one of the chains, called **Home chain**, where it takes the role of **Secondary vault contract**, as well as the the unique role of the master vault operating **LP token contract**.
 - **LP token contract**: This module manages the LP token balances of **User**s, which represents the their proportional share of the total assets of the system. Their share comprises of their deposited assets plus automatic compounding. *It is a deliberate design decision that the LP token only exists on **Home chain**.*
 - **User wallet**: This is a blockchain wallet and identifies a **User**. **User**'s actions; like deposit, withdraw, and harvest; are authenticated/authorized with this wallet.
