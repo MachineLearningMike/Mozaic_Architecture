@@ -17,47 +17,7 @@
 ### 1. Specifying system requirements
 <br/>
 
-#### 1.1 Major concepts and requirements: **Deposit**, **stake**, **compound**, **withdraw**
-- A user is a wallet, technically. If a user has multiple wallets, the user is the wallet that is currently involved with Mozaic by the user's current action.
-- A users **deposit**s their assets from their wallet to Mozaic vault wallet, in exchange with LP tokens.
-- Mozaic **stake**s the deposited assets from vault wallet(s) to staking pools. Staking is on its behalf of Mozaic and not of individual users.
-- Mozaic **stake**s rewards coming from its staking on its behalf. Or, Mozaic **compound**s rewards. Note: With compounding, the total assets become a mixture of deposited and rewarded assets.
-- *Mozaic stakes on a collective basis.* All deposited assets are staked and performs collectively. You cannot track which user's deposit is staked on which staking pool and performs how distinctively.
-- *Mozaic stakes on a global basis.* No matter what tokens on what chain a user deposits, Mozaic will convert freely the deposits to listed acceptable token on any listed chain, to maximize profit.
-- **Staking stock** is the sum of total currently staked assets and total currently pending rewards on staking pools. 
-- An amount of LP token held in a user's wallet represents the user's proportional share of **Staking stock**.
-- A user's **Stock share** is part of **Staking stock** covered by the LP tokens held in the user's wallet.
-- A user **withdraw**s assets from their **Stock share**, on a whole or partial basis, in any listed token they prefer.
-<br>
 
-#### 1.2 Lawful responsibility and freedom of the system
-- **Guaranteed Withdrawal**: The system is legally obliged to allow a user to withdraw the full amount of assets that the user have deposited in the system, in XXX hours after the user's request.
-- **Unguaranteed Profit**: The system is not legally obliged to return profit to a user who deposited assets in the system.
-- **Guaranteed Asset Control**: No one other than the system can move assets/profits.
-- **Transparent Logging**: All asset/profit creation/move must be correctly logged in/at an available format and place.
-- **Transparent Profit**: The division of profit among users must be transparently in accordance with the promise.
-<br>
-
-Mozaic system has aggregational and DAO use cases.
-Aggregational use cases are shown in the following figure:
-<br>
-
-<p align="center">
-  <img src=".\High-level use cases 1.0.PNG" width="1280" title="high-level use cases">
-</p>
-
-
-The use cases and external actors are identified as below:
-- **Compound**: This hidden use case compounds rewards. Idle assets should not ba allowed, and all rewards should be compounded as much and soon as possible.
-- **Control asset move**: This use case checks, carry out, and keeps track of asset moves. The assets managed by the system can only be moved by this use case transparently.
-- **Deposit**: This use case deposits the user's assets in the system. **User** invokes this use case in the hope that Mozaic system will **Optimize staking** of the deposited assets for them. **User** should be able to deposit any token that is listed on Mozaic on any chain where Mozaic is deployed. This use case includes **Control asset move**.
-- **Withdraw**: This use case withdraws from the user's rewards and, if needed, deposited assets. **User** should be able to withdraw any token that is listed on Mozaic on any chain where Mozaic is deployed, no matter they deposited what token on which chain. (The deposited assets are increased by perpetual compounding of rewards.) **User** invokes this use case. This use case includes **Control asset move**.
-- **Optimize staking**: This use case upgrades the staking portfolio to maximize rewards. **Profit generator**, a role of the system, invokes this use case *either on a regular basis or at randomly picked times*. This use case includes **Control asset move** and **Compound**. *By providing **Control asset move** with **assetMovePlan**, this use case effectively prevents it from being involved with finding optimal staking portfolio.*
-- **Trade**: This use case swaps idle assets to get profit by using price changes. It calls **Dex**. *By providing **Control asset move** with **assetMovePlan**, this use case effectively prevents it from being involved with finding optimal trading orders.*
-- **Collect reward**: This use case  collects rewards from Staking pools. Use case Control asset move, when it is working under **Optimize staking**, is extended by this use case. This use case calls **Staking pool**.
-- **Move staking asset**: This use case move assets to/between/from, **Staking pools**. **Control asset move**, when it is working under Optimize staking, is extended by this use case. This use case calls **Staking pool**.
-- **Dex**: This actor is a smart contract that swaps between assets. Examples are pairs on Curve and Balancer DeFis.
-- **Staking pool**: This actor is a smart contract that allocates reward to assets that are staked in it. Examples are farming pools on CBridge and Stargate DeFis. <br>
 
 
 
@@ -69,7 +29,6 @@ Asset management of the system has the following State Machine:
 
 <div style="page-break-after: always;"></div>
 
-### 2. Identifying vaults through its surrounding modules
 <br>
 As the first implementation step, we identify the module that executes use case **Control asset move**, as it seems to act as the controller and be one of unique features of the system.
 The design decisions are as illustrated in the following figure:
