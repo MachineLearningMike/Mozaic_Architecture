@@ -3,7 +3,7 @@
 ## <p style="text-align: center;">Architectural Decisions</p>
 
 - Definition
-    - Mozaic, the system, and Mozaic system refers software system that this project is going to develops, launches, and operates.
+    - Mozaic, the system, and Mozaic system refers to the software system that this project is going to develop, launch, and operate.
 - Goal
     - This document describes architectural decisions that implement the system requirements.
     - This document serves as additional technical terminology of the project.
@@ -15,6 +15,7 @@
 
 #### **1.1 Definition**
 <br>
+
 - **Asset state** is the state of what amounts of what tokens, including LP tokens, on what chains are, at the given moment of time, 
 
     - deposited and pending staking
@@ -23,14 +24,15 @@
     - staying in system treasuries
     - pending withdrawal
 
-- **Request state** is the state of what deposit/withdraw requests are accepted by the system and waiting for final processing, at the given moment of time.
+- **Request state** is the state of what deposit/withdrawal requests are accepted by the system and waiting for final processing, at the given moment of time.
+
 - If the system does **Optimize asset/request state**, it changes the states to earn optimal staking reward.
 <br><br>
 
 #### **1.2 Design decisions**
 
-We choose Sleeping-then_Optimizing model for the overall system behavior. 
-- The system will not always be optimizing, but sleeping most of time accepting deposit/withdrawal requests from users.
+We choose the Sleeping-then_Optimizing model for the overall system behavior. 
+- The system will not always be optimizing, but sleeping most of the time accepting deposit/withdrawal requests from users.
 - If the system **accept**s a deposit request, it 
     - collects the asset the user wants to deposit, (on the asset's chain)
     - tells the user to wait until the next optimization round, when the system will send LP tokens to the user in return for the asset,
@@ -40,7 +42,7 @@ We choose Sleeping-then_Optimizing model for the overall system behavior.
     - tells the user to wait until the next optimization round, when the system will send some asset of the requested token type,
     - and book the request with the system for later processing.
 - The system will **optimize asset/request state** at regular or irregular intervals. The frequency of optimization rounds will be optimized, as frequent moves of asset may incur more costs while infrequent optimization rounds will hinder from quick maneuver of staking.
-- When entering the **Optimization process**, or the **Optimizing** state, the system will take a snapshot of asset/request state. Then the system transforms/changes the states to optimal states for maximum reward, while continuing to **accept** deposit/withdraw requests, which will be handled at the next round of optimization.
+- When entering the **Optimization process**, or the **Optimizing** state, the system will take a snapshot of the asset/request state. Then the system transforms/changes the states to optimal states for maximum reward, while continuing to **accept** deposit/withdrawal requests, which will be handled at the next round of optimization.
 <br><br>
 
 #### **1.3 Visual description**
@@ -68,7 +70,7 @@ According to the requirements, vaults are responsible to, exclusively and at the
 - log all changes to asset/request state.
 <br>
 
-The only way is do deploy smart contracts on chains that cooperate with each other to form a vault module. We call them vaults or vault contracts.
+The only way is to deploy smart contracts on chains that cooperate with each other to form a vault module. We call them vaults or vault contracts.
 <br><br>
 
 #### **2.2 Vaults with limited responsibility**
@@ -106,13 +108,13 @@ The design decisions are as illustrated in the following figure:
 Functional modules are described below:
 - **Secondary vault contract**: This module is a smart contract and deployed on each chain except the home chain. It participates in the cooperation with its peer **Secondary vault contract**s to implement **Control asset move**, This module has at least the following private operations that work locally on its chain: collect_reward(...) and move_staking_asset(...)
 - **Master vault contract**: This module is a smart contract, has global operations, in addition to the local operations inherited from **Secondary vault contract**, and is deployed on one and only one of the chains, called **Home chain**, where it takes the role of **Secondary vault contract**, as well as the the unique role of the master vault operating **LP token contract**.
-- **LP token contract**: This module manages the LP token balances of **User**s, which represents the their proportional share of the total assets of the system. Their share comprises of their deposited assets plus automatic compounding. *It is a deliberate design decision that the LP token only exists on **Home chain**.*
+- **LP token contract**: This module manages the LP token balances of **User**s, which represents their proportional share of the total assets of the system.
 - **User wallet**: This is a blockchain wallet and identifies a **User**. **User**'s actions; like deposit, withdraw, and harvest; are authenticated/authorized with this wallet.
 - **Vault account**: It is the blockchain account of, and controlled by, **Secondary vault contract** and used to store temporary assets, like funds pending staking.
 - **Treasury wallet**: This is a blockchain wallet, and a place to store and retrieve system revenues, like fees. It will be better if it is not owned by a human, but be the account of a smart contract that only obeys vault contracts, for better decentralization. It is deployed on all chains.
 - **Staking optimizer**: This is an off-chain module that can invoke **Master vault contract**. This module is globally unique, calculates optimal **assetMovePlan**s, and lets the master vault to execute the plans (in cooperation with secondary vaults). *It is an important design decision that the assetMovePlan is calculated off-chain, thus leading to transparency and security debates, for the sake of gas- and time- savings:*
     - Transparency debate: **User**s will not be able to track why the system chose particular **assetMovePlan**s technically.
-    - Security debate: If the calculation of **assetMovePlan** is hacked or compromised, then the system will make a less-optimal staking manuever.
+    - Security debate: If the calculation of **assetMovePlan** is hacked or compromised, then the system will make a less-optimal staking maneuver.
     - Justification: Only the second of the following concerns becomes less transparent, leading to both un-assured best profitability and assured huge gas- and time- savings.
         - how much of what assets from which pool to which pool, is the move about
         - whether all the asset moves are securely and/or reasonably/optimally chosen
@@ -123,8 +125,8 @@ Functional modules are described below:
 - **Adimin wallet**: This wallet is used to invoke **Master vault contract", in privilege, on behalf of the administrator.
 - **Staking planner**: An integral component of **Staking optimizer**, this module predicts the next most profitable **staking_portfolio**, based on **poolsInfo** provided by **Pools tracker**. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fee and effectively disable the system.
 - **Transition planner**: An integral component of **Staking optimizer**, this module predicts the most efficient **assetMovePlan**, which is the best procedure of asset move that implements the transitioning to a given **staking_portfolio**, based on the current **poolsInfo**.
-- **Trading optimizer**: This is similar to **Staking optimizer**, except that it relates trading.
-- **Trading planner**: This is similar to **Staking planner**, except that it relates trading.
+- **Trading optimizer**: This is similar to **Staking optimizer**, except that it relates to trading.
+- **Trading planner**: This is similar to **Staking planner**, except that it relates to trading.
 - **Pools tracker**: A shared module between **Staking optimizer** and **Trading optimizer**, this module retrieves and tracks all relevant information from chains, like Reward Release Speed, and total Staked LP of each pool. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fee and effectively disable the system.
 
 <div style="page-break-after: always;"></div>
@@ -139,7 +141,7 @@ The external actors in the following use case diagram, together with their inter
   <img src=".\Vault use cases 1.0.PNG" width="1280" title="vault use cases">
 </p>
 
-- **_Deposit**: This is what happens at the level of vault contracts when **Deposit** use case is invoked at the system level. Invoked by **User wallet** with fund amount to deposit, this use case coordinates the following two use cases.
+- **_Deposit**: This is what happens at the level of vault contracts when the **Deposit** use case is invoked at the system level. Invoked by the **User wallet** with fund amount to deposit, this use case coordinates the following two use cases.
 - **Book deposit**: This use case 
     - collects the fund from **User wallet**,
     - books the deposit request with the system,
@@ -150,7 +152,7 @@ The external actors in the following use case diagram, together with their inter
     - mints LP tokens to cover the new fund, 
     - returns the LP tokens to **User wallet**,
     - and helps **Control staking transition** stake the fund.
-- **_Withdraw**: This is what happens at the level of vault contracts when **Withdraw** use case is invoked at the system level. Invoked by **User wallet** with LP tokens returned, this used case coordinates the following two use cases.
+- **_Withdraw**: This is what happens at the level of vault contracts when the **Withdraw** use case is invoked at the system level. Invoked by **User wallet** with LP tokens returned, this used case coordinates the following two use cases.
 - **Book withdraw**: This use case 
     - collects the returned LP tokens,
     - burns the collected LP tokens,
@@ -182,7 +184,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
     - Save vault contracts long calculations of staking optimization, thus to save gas.
     - Keep vault contract insulated from future algorithm upgrades of staking optimization.
 - Consideration
-    - Input may not idealistically consistent inside itself, because idealistic snapshot of multiple chain state is impossible logically.
+    - Input may not be idealistically consistent inside itself, because an idealistic snapshot of multiple chain states is impossible logically.
     - Output staking portfolio may not be completely/perfectly implemented, because input may have errors and there are unpredictable price slippages sneaked into the calculation.
 <br>
 
@@ -277,7 +279,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
         $FOP$, standing for Find Optimal Portfolio, finds the best USDT-denominated vector of staked assets, for a given total USDT amount.
 
-        Example: $FOP$ transforms (12345) to the best staking of 123 USDT over staking pools, and has the format of USDT-denominated $Stakes^t$, like (100, 20, 3) all in USDT, assuming we have total 3 pools.
+        Example: $FOP$ transforms (12345) to the best staking of 123 USDT over staking pools, and has the format of USDT-denominated $Stakes^t$, like (100, 20, 3) all in USDT, assuming we have a total 3 pools.
 
     - **Transformation $Sum$**
 
@@ -311,7 +313,7 @@ The algorithm for Staking planner $MS^t$ is a chain of transformations:
 
 $optimial \space S^{t} = USDT^{-1} \circ FOP \circ Sum \circ USDT^{+1} (T, \space D^t, \space - \space W^t, \space R^t, \space S^t)$ <br><br>
 
-- $USDT^{+1}$ and $USDT^{-1}$ are obvious, except that we may need systematical methods to find best Dexes and swap paths.
+- $USDT^{+1}$ and $USDT^{-1}$ are obvious, except that we may need systematic methods to find best Dexes and swap paths.
 - FOP is solved analytically, demonstrating about 9% of competitive edge over the public.
 - ElementWiseSum is trivial.
 - $D^t and W^t$ can be retrieved from the booked requests of deposits and withdrawals.
@@ -321,7 +323,7 @@ $optimial \space S^{t} = USDT^{-1} \circ FOP \circ Sum \circ USDT^{+1} (T, \spac
 
 The formula essentially does:
 - collect all available assets: deposits pending staking, less withdrawals pending, plus rending rewards, and the current staking.
-- transform them to USDT and sums up to get a single number: Total in USDT.
+- transform them to USDT and sum up to get a single number: Total in USDT.
 - allocate the Total in USDT optimally across all staking pools.
 - transform the allocated USDT amount back to the native tokens for the staking pools.
 <br><br>
@@ -333,9 +335,9 @@ The formula essentially does:
 
 #### **5.1 Mozaic LP token will only be present on the home chain**
 - LP token can be deployed on any chain(s). According to the requirements, users can deposit any token on any chain and withdraw any token on any chain. It doesn't matter which chain their LP token belongs to.
-- If LP token is deployed on multiple chains, there might be significantly bad user experience and cost overhead, because collecting asset from a wallet requires the user's engagement and wallet connection.
+- If LP token is deployed on multiple chains, there might be significantly bad user experience and cost overhead, because collecting assets from a wallet requires the user's engagement and wallet connection.
     - A user's wallet may have multiple versions of LP token, although they equally represent the user's, global, Stock share. This poses inconvenience to withdrawal UI and to users. Users will have to think in terms of "how much of what LP tokens to return", instead of "how much LP tokens to return".
-    - Suppose the user chooses multiple LP versions to return. Either off-chain modules will have to ask the user to switch the wallet to each of the multiple chains, in turn, to enable the vault on that chain to collect back the LP token on the chian, in an inconvenient and in-secure way; or the user will have to invoke withdrawal process multiple times each focusing on one of the LP versions; in an inconvenient and secure way. Or, the user will have to swap the LP versions into a single LP version, before invoking withdrawal.
+    - Suppose the user chooses multiple LP versions to return. Either off-chain modules will have to ask the user to switch the wallet to each of the multiple chains, in turn, to enable the vault on that chain to collect back the LP token on the chain, in an inconvenient and in-secure way; or the user will have to invoke withdrawal process multiple times each focusing on one of the LP versions; in an inconvenient and secure way. Or, the user will have to swap the LP versions into a single LP version, before invoking withdrawal.
     - When depositing, on the other hand, users will have to choose which LP token version to receive, although they equally represent the user's global Stock share. The vault that is serving a user's deposit, will have to send an LP message to the chain where the user-chosen LP version presents, if the user's deposit token and their chosen LP version are on different chains. (Batch messaging might mitigate this a little.)
 - If LP token is deployed on multiple chains, we will have to allocate huge initial liquidity on those LP liquidity pairs, for little convenience for traders when trading is not yet important.
 - If there is critics that solo LP version, which is naturally deployed on the home chain, will force Mozaic system to transfer to, or send LZ message to, the, non-home, chain on which the user wants to withdraw a token type, then we can say the message will rarely serve a single user but mostly several users in batch, because the withdrawals happen while transitioning to a new staking when all booked deposit requests are handled.
@@ -346,12 +348,12 @@ The formula essentially does:
 
 - Goal: Calculate best transition asset flow plan, in order to
     - Save vault contracts long calculations of staking optimization, thus to save gas.
-    - Keep vault contract insulated from future algorithm upgrades of staking optimization.
+    - Keep vault contracts insulated from future algorithm upgrades of staking optimization.
 <br>
 
 - Consideration
 
-    - Input may not idealistically consistent inside itself, because idealistic snapshot of multiple chain state is impossible logically.
+    - Input may not be idealistically consistent inside itself, because an idealistic snapshot of multiple chain states is impossible logically.
     - Output may not be completely/perfectly implemented, because input may have errors and there are unpredictable price slippages on Dexes.
 <br>
 
@@ -382,11 +384,11 @@ The formula essentially does:
 #### **5.3 Formulae** (under construction)
 
 - Both deposit and withdrawal have future tense.
-    - when a user deposits, let them know approximate LP amount based on the past sync.
-    - when a user withdraws, let them know approximate token amount based on the past sync.
+    - when a user deposits, let them know the approximate LP amount based on the past sync.
+    - when a user withdraws, let them know the approximate token amount based on the past sync.
 
     - on-chain 
-    - on-chain: M: Snapshot withdraw requests. send withdraw requests.
+    - on-chain: M: Snapshot withdraw requests. send a withdrawal requests.
     - on-chain: S: Snapshot local S and deposit requests. Collect R.
     - on-chain: S->M send local S and local R
     - on-chain:  Find USDT(S+R)
