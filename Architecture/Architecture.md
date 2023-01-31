@@ -104,9 +104,9 @@ According to the requirements, vaults do *not* have to
 #### 3.1 Definition**
 <br>
 Omnichain staking requires that:
-- Assets can be deposited in any listed token format on any listed chain, *at users' request*.
+- Assets can be deposited in any listed token format on any listed chain, at users' request.
 - Deposited assets can be swapped/transferred, and staked in any staking pool on any listed chain, *guided by the system's optimization plan.*
-- Staked assets and rewards can be withdrawn in any listed token format on any listed chian, *at users' request.*
+- Staked assets and rewards can be withdrawn in any listed token format on any listed chian, at users' request.
 - Rewards collected can be swapped/transferred, and staked in any staking pool on any listed chain, *guided by the system's optimization plan.*
 <br><br>
 
@@ -144,11 +144,11 @@ We classify asset moves into the following two groups:
 <br>
 
 <p align="center">
-  <img src=".\Irregular asset moves.PNG" width="1280" title="high-level use cases">
+  <img src=".\Irregular asset moves.PNG" width="1280" title="high-level use cases" style="page-break-after: avoid;">
 </p>
 
 <p align="center">
-  <img src=".\Regular asset moves.PNG" width="1280" title="high-level use cases">
+  <img src=".\Regular asset moves.PNG" width="1280" title="high-level use cases" style="page-break-before: avoid;">
 </p>
 
 
@@ -234,7 +234,14 @@ Omnichain LP requires that:
 
 - The LP token should exist on all listed chains.
 - All LP token versions should always have the save value.
+- When the system **stake**s assets that a user **deposit**ed, the system returns LP tokens to the user. The amount of the returned LP token should represent the newly staked asset in the **Staking stock** immediately after the asset is staked.
+- A user can **withdraw** assets from the **Staking stock**, in any listed token format on any listed chain, by first returning LP tokens from their wallet to the system wallet.
+- The amount of asset that is **withdraw**n is the portion of **Staking stock** that is represented by the returned LP tokens immediately before the asset is **withdraw**n.
+<br><br>
 
+Additional use cases of LP token may include:
+
+- fds
 
 
 <div style="page-break-after: always;"></div>
