@@ -253,7 +253,6 @@ Omnichain LP requires that:
 
 Additional use cases of LP token may include:
 
-- (coming soon)
 
 
 <div style="page-break-after: always;"></div>
@@ -339,7 +338,6 @@ The external actors in the following use case diagram, together with their inter
 <br><br>
 
 <div style="page-break-after: always;"></div>
-
 
 ### 6. Algorithm of Staking planner, for optimal staking portfolio
 
