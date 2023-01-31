@@ -157,8 +157,6 @@ Below comes ab example of irregular asset move plan, whatever amount of value th
   <img src=".\Irregular asset moves.PNG" width="1280" title="high-level use cases" style="page-break-after: avoid;">
 </p>
 
-The above asset move plan can be regularized to the following regular asset move plan, with one less inter-chain move and two less intra-chain moves:
-
 <p align="center">
   <img src=".\Regular asset moves.PNG" width="1280" title="high-level use cases" style="page-break-before: avoid;">
 </p>
