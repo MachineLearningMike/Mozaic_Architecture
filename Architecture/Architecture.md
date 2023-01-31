@@ -10,7 +10,11 @@
 <br>
 
 
-### **1. Overall state machine**
+
+
+
+
+### **1. Overall state transition**
 <br>
 
 #### **1.1 Definition**
@@ -98,7 +102,7 @@ According to the requirements, vaults do *not* have to
 <div style="page-break-after: always;"></div>
 <br>
 
-### **3. Architecture for omnichain staking**
+### **3. Omnichain staking**
 <br>
 
 #### **3.1 Definition**
@@ -138,20 +142,18 @@ We know an asset move is the move of asset, whether it changes the token type or
 We classify asset moves into the following two groups:
 - **Inter-Chain Moves** of a given chain: asset moves that take place between any two of $Chian Asset Place$ of the given chain
 - **Intra-Chain Moves**: asset moves that take place between one of a chain's $Chain Asset Places$ and another of another chain's $Chain Asset Places$
-<br><br>
+<br>
 
 <div style="page-break-after: auto;"></div>
 
-#### **3.2 Irregular vs. regular asset moves**
+#### **3.2 Irregular vs. regular asset move plans**
 <br>
-An asset move plan is a set of simple asset move instructions.
-From the cost point of view, we need to eliminate redundant value flows from asset move plans. We define regular asset move plan as a plan that has no redundant value flows.
-<br>
+An asset move plan is a set of elementary asset move instructions. We need to eliminate redundant value flows from asset move plans to save the cost of executing the plan.
+<br> 
 
-**For any asset move plan, there exists a unique asset move plan that is regular and equivalent to the original plan.**
-<br>
+A regular asset move plan as a plan that has no redundant value flows. **For any asset move plan, there exists a unique regular equivalent of the original plan.**
 
-Below comes ab example of irregular asset move plan, whatever amount of value the arrows carry:
+Below comes two example of asset move plan: an irregular plan and its regular equivalet:
 
 <p align="center">
   <img src=".\Irregular asset moves.PNG" width="1280" title="high-level use cases" style="page-break-after: avoid;">
@@ -161,7 +163,7 @@ Below comes ab example of irregular asset move plan, whatever amount of value th
   <img src=".\Regular asset moves.PNG" width="1280" title="high-level use cases" style="page-break-before: avoid;">
 </p>
 
-<div style="page-break-after: always;"></div>
+<div style="page-break-after: auto;"></div>
 
 #### **3.3 Design decisions**
 <br>
@@ -182,7 +184,7 @@ This algorithm will be implemented off-chain, because
 
 - it will save gas fees
 - the requirements don't require decentralization-level of asset move planning
-<br><br>
+<br>
 
 **This algorithm handles assets**:
 - in their USDC-equivalent on the chain, rather than in their own token, when working intra-chain
@@ -236,7 +238,7 @@ This algorithm will be implemented off-chain, because
 <div style="page-break-after: always;"></div>
 <br>
 
-### **4. Architecture for omnichain LP token**
+### **4. Omnichain LP token**
 <br>
 
 #### **4.1 Requirements analysis**
@@ -286,7 +288,7 @@ LP token contracts should be simple and can/should be highly decentralized.
     - Farming will emit, as reward, portion of the systems profit share
     - This will incentivize more staking
     - Farming will be controlled by administration (Starget's decision models is interesting)
-
+<br>
 
 
 
@@ -294,7 +296,7 @@ LP token contracts should be simple and can/should be highly decentralized.
 <div style="page-break-after: always;"></div>
 <br>
 
-### **4. Logical components layout**
+### **5. Logical components layout**
 <br>
 
 
@@ -334,10 +336,10 @@ Functional modules are described below:
 
 <div style="page-break-after: always;"></div>
 
-### **5. Exploring vaults**
+### **6. Omnichain vault**
 <br>
 
-We have identified vaults through their surrounding modules interacting with them.
+We identify vaults through their surrounding modules interacting with them.
 The external actors in the following use case diagram, together with their interactions with vaults are already described above. We can now explore the use cases of vault.
 
 <br>
@@ -381,12 +383,12 @@ The external actors in the following use case diagram, together with their inter
 
 <div style="page-break-after: always;"></div>
 
-### **6. Algorithm of Staking planner, for optimal staking portfolio**
+### **7. Staking planner**
 <br>
 Note. All errors, like numerical processing rounding and price slippage, are ignored at this stage of architectural design.
 <br><br>
 
-#### **6.1 Task definition**
+#### **7.1 Task definition**
 
 - Goal: Calculate best staking portfolio, in order to
     - Save vault contracts long calculations of staking optimization, thus to save gas.
@@ -415,7 +417,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
 <br>
 
-#### **6.2 Definition**
+#### **7.2 Definition**
 
 - **Pools state**
 
@@ -510,7 +512,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
         , where 0D, 0D, and 0R are a vector of zero values in their respective vector lengths.
 <br>
 
-#### **6.3 Formulae**
+#### **7.3 Formulae**
 
 If a state transition takes place at time $t$, Mozaic's asset state $MS^t$ changes to $MS^{t+}$ as shown in the following diagram: <br><br>
 
@@ -539,9 +541,15 @@ The formula essentially does:
 
 <div style="page-break-after: always;"></div>
 
-### **7. Optimizing inter-chain messaging**
+### **8. Inter-chain transportation**
 <br>
 
 (Coming soon)
 
 some with our own off-chain relayer, instead of LZ message.
+
+<div style="page-break-after: always;"></div>
+
+### **9. Gas**
+<br>
+
