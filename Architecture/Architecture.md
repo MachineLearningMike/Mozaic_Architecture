@@ -10,7 +10,7 @@
 <br>
 
 
-### **1. Overall state machine**
+### 1. Overall state machine
 <br>
 
 #### **1.1 Definition**
@@ -57,7 +57,7 @@ The Sleeping-then_Optimizing model of behavior can be expressed in a UML State M
 <div style="page-break-after: always;"></div>
 <br>
 
-### **2. Vaults' local responsibility**
+### 2. Vaults' local responsibility
 <br>
 We need a module that implements the use case **Control asset move** identified in the requirements specification, solely, and completely. We call the module the vault, for the following reasons.
 
@@ -98,7 +98,7 @@ According to the requirements, vaults do *not* have to
 <div style="page-break-after: always;"></div>
 <br>
 
-### **3. Architecture for omnichain staking**
+### 3. Architecture for omnichain staking
 <br>
 
 #### 3.1 Definition**
@@ -139,7 +139,8 @@ We classify asset moves into the following two groups:
 - **Intra-Chain Moves**: asset moves that take place between one of a chain's $Chain Asset Places$ and another of another chain's $Chain Asset Places$
 <br><br>
 
-#### 3.2 Irregular and regular asset moves**
+
+#### **3.2 Irregular and regular asset moves**
 <br>
 
 <p align="center">
@@ -226,7 +227,7 @@ This algorithm will be implemented off-chain, because
 <div style="page-break-after: always;"></div>
 <br>
 
-### **4. Architecture for omnichain LP token**
+### 4. Architecture for omnichain LP token
 <br>
 
 #### 4.1 Definition**
@@ -278,7 +279,7 @@ Functional modules are described below:
 
 <div style="page-break-after: always;"></div>
 
-### **5. Exploring vaults**
+### 5. Exploring vaults
 <br>
 
 We have identified vaults through their surrounding modules interacting with them.
@@ -323,12 +324,12 @@ The external actors in the following use case diagram, together with their inter
 <div style="page-break-after: always;"></div>
 
 
-### 4. Algorithm of Staking planner, for optimal staking portfolio
+### 6. Algorithm of Staking planner, for optimal staking portfolio
 
 Note. All errors, like numerical processing rounding and price slippage, are ignored at this stage of architectural design.
 <br>
 
-#### 4.1 Task definition
+#### 6.1 Task definition
 
 - Goal: Calculate best staking portfolio, in order to
     - Save vault contracts long calculations of staking optimization, thus to save gas.
@@ -357,7 +358,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
 <br>
 
-#### 4.2 **Definition**
+#### 6.2 **Definition**
 
 - **Pools state**
 
@@ -452,7 +453,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
         , where 0D, 0D, and 0R are a vector of zero values in their respective vector lengths.
 <br>
 
-#### 4.3 **Formulae**
+#### 6.3 **Formulae**
 
 If a state transition takes place at time $t$, Mozaic's asset state $MS^t$ changes to $MS^{t+}$ as shown in the following diagram: <br><br>
 
