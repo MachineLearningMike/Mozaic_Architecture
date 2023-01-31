@@ -149,13 +149,13 @@ From the cost point of view, we need to eliminate redundant value flows from ass
 **For any asset move plan, there exists a unique asset move plan that is regular and equivalent to the original plan.**
 <br>
 
-Below comes ab example of irregular asset move plan:
+Below comes ab example of irregular asset move plan, whatever amount of value the arrows carry:
 
 <p align="center">
   <img src=".\Irregular asset moves.PNG" width="1280" title="high-level use cases" style="page-break-after: avoid;">
 </p>
 
-The above asset move plan can be regularized to the following regular asset move plan:
+The above asset move plan can be regularized to the following regular asset move plan, with one less inter-chain move and one less intra-chain move:
 
 <p align="center">
   <img src=".\Regular asset moves.PNG" width="1280" title="high-level use cases" style="page-break-before: avoid;">
