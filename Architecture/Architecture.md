@@ -89,7 +89,6 @@ According to the requirements, vaults do *not* have to
 
 #### **2.4 Vaults' local responsibility - local moves of Staking stock**
 - Collect rewards from local staking pools
-- 
 
 - Collect rewards from local staking pools
 - Pull asset from the user if a deposit involves a local token of asset to collect
@@ -330,7 +329,6 @@ The formula essentially does:
 
 <div style="page-break-after: always;"></div>
 
-### **5. Algorithm for Transition planner**
 <br>
 
 #### **5.1 Mozaic LP token will only be present on the home chain**
@@ -380,30 +378,4 @@ The formula essentially does:
     - $assetMovePlan^t$
 
 <br>
-
-#### **5.3 Formulae** (under construction)
-
-- Both deposit and withdrawal have future tense.
-    - when a user deposits, let them know the approximate LP amount based on the past sync.
-    - when a user withdraws, let them know the approximate token amount based on the past sync.
-
-    - on-chain 
-    - on-chain: M: Snapshot withdraw requests. send a withdrawal requests.
-    - on-chain: S: Snapshot local S and deposit requests. Collect R.
-    - on-chain: S->M send local S and local R
-    - on-chain:  Find USDT(S+R)
-    - on-chain: Find W based on their LP, Total LP, and USDT(S+R). Do not return W yet.
-    - on-chain: Find LP for D, based on USDT(D), Total LP, and USDT(S+R). Return LP at the same time.
-    - off-chain: Find assetMovePlan, based on S, R, D, W, and poolsInfo.
-    - on-chain: Return W after transitioning to the optimal S.
-    - on-chain: Execute assetMovePlan, finishing D and W, furnished by assetMovePlan.
-
-
-- rebalance fee will be imposed on withdrawal if it makes more deficit of a token in the coming opt.
-- rebalance fee will be imposed on deposit if it makes more surplus of a token in the coming opt.
-
-
-    
-
-
 
