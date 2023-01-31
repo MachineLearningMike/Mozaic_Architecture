@@ -139,7 +139,7 @@ We classify asset moves into the following two groups:
 - **Intra-Chain Moves**: asset moves that take place between one of a chain's $Chain Asset Places$ and another of another chain's $Chain Asset Places$
 <br><br>
 
-<div style="page-break-after: always;"></div>
+<div style="page-break-after: auto;"></div>
 
 #### **3.2 Irregular vs. regular asset moves**
 <br>
