@@ -147,8 +147,6 @@ We classify asset moves into the following two groups:
   <img src=".\Irregular asset moves.PNG" width="1280" title="high-level use cases">
 </p>
 
-<br>
-
 <p align="center">
   <img src=".\Regular asset moves.PNG" width="1280" title="high-level use cases">
 </p>
