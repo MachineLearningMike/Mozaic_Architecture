@@ -140,12 +140,22 @@ We classify asset moves into the following two groups:
 <br><br>
 
 
-#### **3.2 Irregular and regular asset moves**
+#### **3.2 Irregular vs. regular asset moves**
 <br>
+An asset move plan is a set of simple asset move instructions.
+From the cost point of view, we need to eliminate redundant value flows from asset move plans. We define regular asset move plan as a plan that has no redundant value flows.
+<br>
+
+**For any asset move plan, there exists a unique asset move plan that is regular and equivalent to the original plan.**
+<br>
+
+Below comes ab example of irregular asset move plan:
 
 <p align="center">
   <img src=".\Irregular asset moves.PNG" width="1280" title="high-level use cases" style="page-break-after: avoid;">
 </p>
+
+The above asset move plan can be regularized to the following regular asset move plan:
 
 <p align="center">
   <img src=".\Regular asset moves.PNG" width="1280" title="high-level use cases" style="page-break-before: avoid;">
