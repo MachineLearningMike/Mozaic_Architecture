@@ -57,44 +57,196 @@ The Sleeping-then_Optimizing model of behavior can be expressed in a UML State M
 <div style="page-break-after: always;"></div>
 <br>
 
-### **2. Vaults**
+### **2. Vaults' local responsibility**
 <br>
 We need a module that implements the use case **Control asset move** identified in the requirements specification, solely, and completely. We call the module the vault, for the following reasons.
 
 <br>
 
-#### **2.1 Vaults as smart contract**
+#### **2.1 Vaults are smart contracts**
 According to the requirements, vaults are responsible to, exclusively and at the decentralization level,
 - keep track of all changes to asset/request state, defined in the previous section
 - execute all changes to asset/request state,
 - log all changes to asset/request state.
 <br>
 
-The only way is to deploy smart contracts on chains that cooperate with each other to form a vault module. We call them vaults or vault contracts.
+The only way is to deploy smart contracts on chains that cooperate with each other to form an abstract vault module. We call them vaults or vault contracts.
 <br><br>
 
-#### **2.2 Vaults with limited responsibility**
+#### **2.2 Vaults have limited responsibility**
 
 According to the requirements, vaults do *not* have to 
 - find an optimal asset state to **Optimize asset/request state** to
 - execute asset move requests, like assetMovePlan identified in requirements, strictly, because there will not be negative profit.
 <br><br>
 
-#### **2.3 Vaults' local responsibility - local transportation of token**
+#### **2.3 Vaults are responsible for local transportation of tokens to/from wallets**
 - Pull asset from the user if a deposit involves a local token of asset to collect
 - Push LP to the user if a deposit involves the local LP token to return
 - Pull LP tokens from the user if a withdrawal involves the local LP token to collect
 - Push asset to the user if a withdrawal involves a local token of asset to return
+- Swap at local Dex pools
 <br><br>
 
-#### **2.4 Vaults' local responsibility - local moves of Staking stock**
+#### **2.4 Vaults are responsible for local moves of Staking stock**
+- Stake assets to local staking pools
+- Un-stake whole or partial assets from local staking pools
 - Collect rewards from local staking pools
+- Swap at local Dex pools
+<br><br>
 
-- Collect rewards from local staking pools
-- Pull asset from the user if a deposit involves a local token of asset to collect
-- Push LP to the user if a deposit involves the local LP token to return
-- Pull LP tokens from the user if a withdrawal involves the local LP token to collect
-- Push asset to the user if a withdrawal involves a local token of asset to return
+<div style="page-break-after: always;"></div>
+<br>
+
+### **3. Architecture for omnichain staking**
+<br>
+
+#### 3.1 Definition**
+<br>
+Omnichain staking requires that:
+- Assets can be deposited in any listed token format on any listed chain, *at users' request*.
+- Deposited assets can be swapped/transferred, and staked in any staking pool on any listed chain, *guided by the system's optimization plan.*
+- Staked assets and rewards can be withdrawn in any listed token format on any listed chian, *at users' request.*
+- Rewards collected can be swapped/transferred, and staked in any staking pool on any listed chain, *guided by the system's optimization plan.*
+<br><br>
+
+For a given chain, we define the followings:
+
+$ChainAssetPlaces = \{ChainVaultWallet\} \cup ChainStakingPools \cup ChainWithdrawalWallets$
+
+- $ChainVaultWallet$: the vault's wallet on the given chain. They have 
+    - deposited assets that are pending staking
+- $ChainStakingPools$: all staking pools on the given chain. They have
+    - staked assets
+    - pending rewards
+- $ChainWithdrawalWallets$: wallets of all users whose withdrawal requests are booked and who will receive withdrawal assets on the given chain. They have
+    - negative undefined asset to send to the users - the system has to calculate the amount based on the LP token amount redeemed from the user.
+<br><br>
+
+$AllVaultWallets$: the set of $ChainVaultWallet$ of all listed chains.
+
+$AllStakingPools$: the sum of $ChainStakingPools$ of all listed chains.
+
+$AllWithdrawalWallets$: the sum of $ChainWithdrawalWallets$ of all listed chains.
+<br><br>
+$AllAssetPlaces = AllVaultWallets \cup AllStakingPools \cup AllWithdrawalWallets$
+
+We know an asset move is the move of asset, whether it changes the token type or not, between any two of $AllAssetPlaces$.
+<br><br>
+
+We classify asset moves into the following two groups:
+- **Inter-Chain Moves** of a given chain: asset moves that take place between any two of $Chian Asset Place$ of the given chain
+- **Intra-Chain Moves**: asset moves that take place between one of a chain's $Chain Asset Places$ and another of another chain's $Chain Asset Places$
+<br><br>
+
+<div style="page-break-after: always;"></div>
+<br>
+
+#### 3.2 Irregular and regular asset moves**
+<br>
+
+<p align="center">
+  <img src=".\Irregular asset moves.PNG" width="1280" title="high-level use cases">
+</p>
+
+<br>
+
+
+<p align="center">
+  <img src=".\Regular asset moves.PNG" width="1280" title="high-level use cases">
+</p>
+
+
+#### **3.3 Design decisions**
+<br>
+
+We deduce the following design decisions:
+- Asst moves will be regularized. We believe regularization will reduce the total cost of asset moves and the number of inter-chain swap/transfers.
+- We believe that ChainWallet will be the best place for regular **Inter-Chain Moves**. It means **Inter-Chain Moves** will be between ChainWallets.
+- We need one special vault that oversees the cooperation between vaults, including itself, at decentralization level.
+    - **Master vault**: the special vault
+    - **Home chain**: the chain that hosts the master vault
+<br><br>
+
+#### **3.4 Directional algorithm for upgrading staking**
+<br>
+This algorithm will be implemented off-chain, because
+
+<br>
+
+- it will save gas fees
+- the requirements don't require decentralization-level of asset move planning
+<br><br>
+
+**This algorithm handles assets**:
+- in their USDC-equivalent on the chain, rather than in their own token, when working intra-chain
+- in their equivalent of home chains' USDC or the largest giving chains's USDC
+- we hope USDC on all chains will have exactly the same price
+<br>
+
+**Algorithm**
+<br>
+
+- Input: Target staking portfolio. (See the coming sections for optimal staking portfolio)
+- Classify asset places into giving places and taking places
+    - If the current asset amount is significantly greater than the target asset amount, it is a giving asset place
+    - If the current asset amount is significantly less than the target asset amount, it is a giving asset place
+    - Else, it is a neutral asset place
+    - An asset place has
+        - a positive giving amount if it is a giving asset place, else zero
+        - a positive taking amount if it is a taking asset place, else zero
+        - a zero giving amount and a zero taking amount if it is a neutral asset place.
+- Classify chains into giving chains and taking chains
+    - If the sum of giving amount of all ChainAsstPlaces is significantly greater than the sum of taking amount, it is a giving chain
+    - If the sum of giving amount of all ChainAsstPlaces is significantly less than the sum of taking amount, it is a giving chain
+    - Else, it is a neutral chian
+    - A chain has
+        - a positive giving amount if it is a giving chain, else zero
+        - a positive giving amount if it is a taking chain, else zero
+        - a zero giving amount and a zero taking amount if it is a neutral chain
+- Generate a regular inter-chain asset move plan, AesseMovePlan, for giving chains
+    - Collect the local swap prices and fees
+    - Sum up surplus asset, which is the target asset less the current asset, of giving asset places to a variable
+    - Make a distribution plan that divides the sum of surplus asset to taking asset places
+    - Do not care of deficit amount. (Leave it to vaults' tunning operation)
+    - Now, an irregular asset move plan has been created
+    - Regularize the plan, by using graph theories and ad-hoc techniques
+    - Conclude with the surplus assets amount of this giving chain
+    - **Be aware that the asset move plan is actually asset send plan that doesn't care of price slippage and fees**
+    - **Be aware that this plan does/can not take into account the actual price slippage and fees**
+- Transfer surplus assets on giving chains to taking chains
+    - Sum up surplus assets of giving chains to a variable
+    - Make a distribution plan that divides the sum of surplus assets to taking chains
+    - Do not care of deficit amount. (Leave it to vaults' tunning operation)
+    - Now, an irregular asset move plan has been created
+    - Regularize the plan, by using graph theories and ad-hoc techniques
+    - **Be aware that the asset move plan is actually asset send plan that doesn't care of price slippage and fees**
+    - **Be aware that this plan does/can not take into account the actual price slippage and fees**
+- Generate a regular inter-chain asset move plan, AeetMovePlan, for taking chains
+    (the same as for giving chains)
+
+
+
+<div style="page-break-after: always;"></div>
+<br>
+
+### **4. Architecture for omnichain LP token**
+<br>
+
+#### 4.1 Definition**
+<br>
+Omnichain LP requires that:
+
+- The LP token should exist on all listed chains.
+- All LP token versions should always have the save value.
+
+
+
+<div style="page-break-after: always;"></div>
+<br>
+
+### **4. Logical components layout**
+<br>
 
 
 
@@ -111,7 +263,7 @@ Functional modules are described below:
 - **User wallet**: This is a blockchain wallet and identifies a **User**. **User**'s actions; like deposit, withdraw, and harvest; are authenticated/authorized with this wallet.
 - **Vault account**: It is the blockchain account of, and controlled by, **Secondary vault contract** and used to store temporary assets, like funds pending staking.
 - **Treasury wallet**: This is a blockchain wallet, and a place to store and retrieve system revenues, like fees. It will be better if it is not owned by a human, but be the account of a smart contract that only obeys vault contracts, for better decentralization. It is deployed on all chains.
-- **Staking optimizer**: This is an off-chain module that can invoke **Master vault contract**. This module is globally unique, calculates optimal **assetMovePlan**s, and lets the master vault to execute the plans (in cooperation with secondary vaults). *It is an important design decision that the assetMovePlan is calculated off-chain, thus leading to transparency and security debates, for the sake of gas- and time- savings:*
+- **Staking optimizer**: This is an off-chain module that can invoke **Master vault contract**s. This module is globally unique, calculates optimal **assetMovePlan**s, and lets the master vault to execute the plans (in cooperation with secondary vaults). *It is an important design decision that the assetMovePlan is calculated off-chain, thus leading to transparency and security debates, for the sake of gas- and time- savings:*
     - Transparency debate: **User**s will not be able to track why the system chose particular **assetMovePlan**s technically.
     - Security debate: If the calculation of **assetMovePlan** is hacked or compromised, then the system will make a less-optimal staking maneuver.
     - Justification: Only the second of the following concerns becomes less transparent, leading to both un-assured best profitability and assured huge gas- and time- savings.
@@ -122,15 +274,15 @@ Functional modules are described below:
         - whether the execution of assetMovePlan is integrated
 - **Trading optimizer**: This off-chain module is similar to **Staking optimizer**, except it relates to trading.
 - **Adimin wallet**: This wallet is used to invoke **Master vault contract", in privilege, on behalf of the administrator.
-- **Staking planner**: An integral component of **Staking optimizer**, this module predicts the next most profitable **staking_portfolio**, based on **poolsInfo** provided by **Pools tracker**. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fee and effectively disable the system.
+- **Staking planner**: An integral component of **Staking optimizer**, this module predicts the next most profitable **staking_portfolio**, based on **poolsInfo** provided by **Pools tracker**. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fees and effectively disable the system.
 - **Transition planner**: An integral component of **Staking optimizer**, this module predicts the most efficient **assetMovePlan**, which is the best procedure of asset move that implements the transitioning to a given **staking_portfolio**, based on the current **poolsInfo**.
 - **Trading optimizer**: This is similar to **Staking optimizer**, except that it relates to trading.
 - **Trading planner**: This is similar to **Staking planner**, except that it relates to trading.
-- **Pools tracker**: A shared module between **Staking optimizer** and **Trading optimizer**, this module retrieves and tracks all relevant information from chains, like Reward Release Speed, and total Staked LP of each pool. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fee and effectively disable the system.
+- **Pools tracker**: A shared module between **Staking optimizer** and **Trading optimizer**, this module retrieves and tracks all relevant information from chains, like Reward Release Speed, and total Staked LP of each pool. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fees and effectively disable the system.
 
 <div style="page-break-after: always;"></div>
 
-### 3. Exploring vaults
+### **5. Exploring vaults**
 <br>
 
 We have identified vaults through their surrounding modules interacting with them.
@@ -170,9 +322,12 @@ The external actors in the following use case diagram, together with their inter
     - execute remaining part of **assetMovePlan**
 - **Control trading**: This use case executes **assetMovePlan** provided by **Trading optimizer**.
 
+<br><br>
+
 <div style="page-break-after: always;"></div>
 
-### 4. Algorithm of Staking planner
+
+### 4. Algorithm of Staking planner, for optimal staking portfolio
 
 Note. All errors, like numerical processing rounding and price slippage, are ignored at this stage of architectural design.
 <br>
@@ -181,7 +336,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
 - Goal: Calculate best staking portfolio, in order to
     - Save vault contracts long calculations of staking optimization, thus to save gas.
-    - Keep vault contract insulated from future algorithm upgrades of staking optimization.
+    - Keep vault contracts insulated from future algorithm upgrades of staking optimization.
 - Consideration
     - Input may not be idealistically consistent inside itself, because an idealistic snapshot of multiple chain states is impossible logically.
     - Output staking portfolio may not be completely/perfectly implemented, because input may have errors and there are unpredictable price slippages sneaked into the calculation.
@@ -278,7 +433,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
         $FOP$, standing for Find Optimal Portfolio, finds the best USDT-denominated vector of staked assets, for a given total USDT amount.
 
-        Example: $FOP$ transforms (12345) to the best staking of 123 USDT over staking pools, and has the format of USDT-denominated $Stakes^t$, like (100, 20, 3) all in USDT, assuming we have a total 3 pools.
+        Example: $FOP$ transforms (12345) to the best staking of 123 USDT over staking pools, and has the format of USDT-denominated $Stakes^t$, like (100, 20, 3) all in USDT, assuming we have a total of 3 pools.
 
     - **Transformation $Sum$**
 
@@ -331,51 +486,6 @@ The formula essentially does:
 
 <br>
 
-#### **5.1 Mozaic LP token will only be present on the home chain**
-- LP token can be deployed on any chain(s). According to the requirements, users can deposit any token on any chain and withdraw any token on any chain. It doesn't matter which chain their LP token belongs to.
-- If LP token is deployed on multiple chains, there might be significantly bad user experience and cost overhead, because collecting assets from a wallet requires the user's engagement and wallet connection.
-    - A user's wallet may have multiple versions of LP token, although they equally represent the user's, global, Stock share. This poses inconvenience to withdrawal UI and to users. Users will have to think in terms of "how much of what LP tokens to return", instead of "how much LP tokens to return".
-    - Suppose the user chooses multiple LP versions to return. Either off-chain modules will have to ask the user to switch the wallet to each of the multiple chains, in turn, to enable the vault on that chain to collect back the LP token on the chain, in an inconvenient and in-secure way; or the user will have to invoke withdrawal process multiple times each focusing on one of the LP versions; in an inconvenient and secure way. Or, the user will have to swap the LP versions into a single LP version, before invoking withdrawal.
-    - When depositing, on the other hand, users will have to choose which LP token version to receive, although they equally represent the user's global Stock share. The vault that is serving a user's deposit, will have to send an LP message to the chain where the user-chosen LP version presents, if the user's deposit token and their chosen LP version are on different chains. (Batch messaging might mitigate this a little.)
-- If LP token is deployed on multiple chains, we will have to allocate huge initial liquidity on those LP liquidity pairs, for little convenience for traders when trading is not yet important.
-- If there is critics that solo LP version, which is naturally deployed on the home chain, will force Mozaic system to transfer to, or send LZ message to, the, non-home, chain on which the user wants to withdraw a token type, then we can say the message will rarely serve a single user but mostly several users in batch, because the withdrawals happen while transitioning to a new staking when all booked deposit requests are handled.
-<br>
-
-#### **5.2 Task definition for Transition planner**
-<br>
-
-- Goal: Calculate best transition asset flow plan, in order to
-    - Save vault contracts long calculations of staking optimization, thus to save gas.
-    - Keep vault contracts insulated from future algorithm upgrades of staking optimization.
-<br>
-
-- Consideration
-
-    - Input may not be idealistically consistent inside itself, because an idealistic snapshot of multiple chain states is impossible logically.
-    - Output may not be completely/perfectly implemented, because input may have errors and there are unpredictable price slippages on Dexes.
-<br>
-
-- Input (see section 4. Algorithm of Staking planner, for their definitions)
-    - $Deposits^t$
-    - $Withdrawals^t$
-    - $Rewards^t$
-    - $Stakes^t$
-    - $poolsInfo^t$
-    - $optimal \space Stakes^{t+}$, or $optimal S^{t+}$
-<br>
-
-- Process
-    - Find a step-by-step logical procedure of asset flow instructions that implements the following transition:
-
-    $$\begin{CD} \space \space \space \space \space \space  \space \space \space \space MS^t = (T,\space D^t,\space - \space W^t,\space R^t,\space S^t) @> (Resulting \space transition) >> MS^{t+} = (T,\space 0D,\space - \space 0W,\space 0R,\space optimal \space S^t) \space  \space \space \space \space \space \space \space \space \end{CD}$$
-
-    - Regularize the procedure by Removing mutually/transitively cancelling asset moves in the procedure
-    - 
-
-<br>
-
-- Output
-    - $assetMovePlan^t$
-
+### **5. **
 <br>
 

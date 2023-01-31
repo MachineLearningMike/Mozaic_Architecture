@@ -20,7 +20,7 @@
 - When the system **stake**s assets that a user **deposit**ed, the system returns LP tokens to the user. The amount of the returned LP token should represent the newly staked asset in the **Staking stock** immediately after the asset is staked.
 - A user can **withdraw** assets from the **Staking stock**, in any listed token format on any listed chain, by first returning LP tokens from their wallet to the system wallet.
 - The amount of asset that is **withdraw**n is the portion of **Staking stock** that is represented by the returned LP tokens immediately before the asset is **withdraw**n.
-- The LP token may exist on a single listed chain, some listed chains, or all listed chains. If the LP token exists on all listed chains, it is an omnichain LP.
+- The LP token may exist on a single listed chain, some listed chains, or all listed chains.
 - All LP token versions should always have the save value.
 - A user can transfer one version of LP token from their wallet to any version of LP token on any wallet or account.
 - The system should make sure that only the system can **stake** deposited assets, subtract from **stake**d assets, collect reward, and **compound** reward.
