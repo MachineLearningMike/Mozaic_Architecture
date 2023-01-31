@@ -10,7 +10,7 @@
 <br>
 
 
-### 1. Overall state machine
+### **1. Overall state machine**
 <br>
 
 #### **1.1 Definition**
@@ -57,7 +57,7 @@ The Sleeping-then_Optimizing model of behavior can be expressed in a UML State M
 <div style="page-break-after: always;"></div>
 <br>
 
-### 2. Vaults' local responsibility
+### **2. Vaults' local responsibility**
 <br>
 We need a module that implements the use case **Control asset move** identified in the requirements specification, solely, and completely. We call the module the vault, for the following reasons.
 
@@ -98,15 +98,16 @@ According to the requirements, vaults do *not* have to
 <div style="page-break-after: always;"></div>
 <br>
 
-### 3. Architecture for omnichain staking
+### **3. Architecture for omnichain staking**
 <br>
 
-#### 3.1 Definition**
+#### **3.1 Definition**
 <br>
 Omnichain staking requires that:
-- Assets can be deposited in any listed token format on any listed chain, at users' request.
-- Deposited assets can be swapped/transferred, and staked in any staking pool on any listed chain, *guided by the system's optimization plan.*
-- Staked assets and rewards can be withdrawn in any listed token format on any listed chian, at users' request.
+
+- Assets can be deposited in any listed token format on any listed chain, *at users' request*.
+- Deposited assets can be swapped/transferred, and staked in any staking pool on any listed chain, *guided by the system's optimization plan*.
+- Staked assets and rewards can be withdrawn in any listed token format on any listed chian, *at users' request*.
 - Rewards collected can be swapped/transferred, and staked in any staking pool on any listed chain, *guided by the system's optimization plan.*
 <br><br>
 
@@ -130,7 +131,7 @@ $AllStakingPools$: the sum of $ChainStakingPools$ of all listed chains.
 $AllWithdrawalWallets$: the sum of $ChainWithdrawalWallets$ of all listed chains.
 <br><br>
 $AllAssetPlaces = AllVaultWallets \cup AllStakingPools \cup AllWithdrawalWallets$
-
+<br><br>
 We know an asset move is the move of asset, whether it changes the token type or not, between any two of $AllAssetPlaces$.
 <br><br>
 
@@ -237,10 +238,10 @@ This algorithm will be implemented off-chain, because
 <div style="page-break-after: always;"></div>
 <br>
 
-### 4. Architecture for omnichain LP token
+### **4. Architecture for omnichain LP token**
 <br>
 
-#### 4.1 Definition**
+#### **4.1 Requirements analysis**
 <br>
 Omnichain LP requires that:
 
@@ -251,7 +252,44 @@ Omnichain LP requires that:
 - The amount of asset that is **withdraw**n is the portion of **Staking stock** that is represented by the returned LP tokens immediately before the asset is **withdraw**n.
 <br><br>
 
-Additional use cases of LP token may include:
+Additional optional use cases of LP token may include:
+
+- The LP token can be rebased
+- The LP token cannot be rebased and the supply is capped
+- The LP token can be staked
+- The LP token can be promoted with farming
+- LP tokens will open the possibility of becoming an algorithmic stable token by rebasing itself based on oracle price feeds.
+
+<br>
+
+#### **4.2 Design decisions**
+<br>
+
+LP token contracts should be simple and can/should be highly decentralized.
+<br>
+
+- A LP token contract will be deployed on each listed chain
+- All LP token contracts will have the same functionality
+    - there will not be master-slave or main-secondary relationship
+    - this is to make LPs and chains as equal as possible
+- LP token contracts will be independent of vaults
+    - LP token contracts will know be aware of vault contracts
+    - LP tokens will be able to continue to work while vaults are in maintenance mode or being upgraded
+- LP token contracts will be independent of administration
+    - LP tokens will be completely free from administration or DAO 
+    - LP tokens will not be upgradeable, for example
+- LP tokens will be inter-chain swapped 1:1 at the level of decentralization
+    - LZ or other inter-chain transportation service will be used 
+    - (**What if the LZ service gets down?** Make it changeable?)
+    - Mint-burn, not lock-release, mechanism will be used
+- LP token swap will be either completely successful or completely reverted on both the source chain and the destination chain
+    - It will employ the same technique as Stargate's swap, **if we find no alternatives**.
+- **LP tokens will be promoted with farming**
+    - Farming will emit, as reward, portion of the systems profit share
+    - This will incentivize more staking
+    - Farming will be controlled by administration (Starget's decision models is interesting)
+
+
 
 
 
@@ -293,17 +331,23 @@ Functional modules are described below:
 - **Trading planner**: This is similar to **Staking planner**, except that it relates to trading.
 - **Pools tracker**: A shared module between **Staking optimizer** and **Trading optimizer**, this module retrieves and tracks all relevant information from chains, like Reward Release Speed, and total Staked LP of each pool. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fees and effectively disable the system.
 
+<br>
+
+
 <div style="page-break-after: always;"></div>
 
-### 5. Exploring vaults
+### **5. Exploring vaults**
 <br>
 
 We have identified vaults through their surrounding modules interacting with them.
 The external actors in the following use case diagram, together with their interactions with vaults are already described above. We can now explore the use cases of vault.
 
+<br>
+
 <p align="center">
   <img src=".\Vault use cases 1.0.PNG" width="1280" title="vault use cases">
 </p>
+<br>
 
 - **_Deposit**: This is what happens at the level of vault contracts when the **Deposit** use case is invoked at the system level. Invoked by the **User wallet** with fund amount to deposit, this use case coordinates the following two use cases.
 - **Book deposit**: This use case 
@@ -339,12 +383,12 @@ The external actors in the following use case diagram, together with their inter
 
 <div style="page-break-after: always;"></div>
 
-### 6. Algorithm of Staking planner, for optimal staking portfolio
-
-Note. All errors, like numerical processing rounding and price slippage, are ignored at this stage of architectural design.
+### **6. Algorithm of Staking planner, for optimal staking portfolio**
 <br>
+Note. All errors, like numerical processing rounding and price slippage, are ignored at this stage of architectural design.
+<br><br>
 
-#### 6.1 Task definition
+#### **6.1 Task definition**
 
 - Goal: Calculate best staking portfolio, in order to
     - Save vault contracts long calculations of staking optimization, thus to save gas.
@@ -373,7 +417,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
 <br>
 
-#### 6.2 **Definition**
+#### **6.2 Definition**
 
 - **Pools state**
 
@@ -468,7 +512,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
         , where 0D, 0D, and 0R are a vector of zero values in their respective vector lengths.
 <br>
 
-#### 6.3 **Formulae**
+#### **6.3 Formulae**
 
 If a state transition takes place at time $t$, Mozaic's asset state $MS^t$ changes to $MS^{t+}$ as shown in the following diagram: <br><br>
 
@@ -495,3 +539,11 @@ The formula essentially does:
 <br><br>
 
 
+<div style="page-break-after: always;"></div>
+
+### **7. Optimizing inter-chain messaging**
+<br>
+
+(Coming soon)
+
+some with our own off-chain relayer, instead of LZ message.
