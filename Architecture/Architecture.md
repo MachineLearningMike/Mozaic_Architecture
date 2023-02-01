@@ -299,8 +299,6 @@ LP token contracts should be simple and can/should be highly decentralized.
 ### **5. Logical components layout**
 <br>
 
-
-
 The design decisions are as illustrated in the following figure:
 <br><br>
 <p align="center">
@@ -546,7 +544,6 @@ The formula essentially does:
 
 (Coming soon)
 
-some with our own off-chain relayer, instead of LZ message.
 
 <div style="page-break-after: always;"></div>
 
