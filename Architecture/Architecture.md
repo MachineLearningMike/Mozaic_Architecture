@@ -265,7 +265,7 @@ This algorithm will be implemented off-chain, because
     - Collect the local swap prices and fees
     - Sum up surplus asset, which is the target asset less the current asset, of giving asset places to a variable
     - Make a distribution plan that divides the sum of surplus asset to taking asset places
-    - Do not care of deficit amount. (Leave it to vaults' tunning operation)
+    - Do not care of dust deficit amount. (Leave it to vaults' tunning operation)
     - Now, an irregular asset move plan has been created
     - Regularize the plan, by using graph theories and ad-hoc techniques
     - Conclude with the surplus assets amount of this giving chain
@@ -274,7 +274,7 @@ This algorithm will be implemented off-chain, because
 - Transfer surplus assets on giving chains to taking chains
     - Sum up surplus assets of giving chains to a variable
     - Make a distribution plan that divides the sum of surplus assets to taking chains
-    - Do not care of deficit amount. (Leave it to vaults' tunning operation)
+    - Do not care of dust deficit amount. (Leave it to vaults' tunning operation)
     - Now, an irregular asset move plan has been created
     - Regularize the plan, by using graph theories and ad-hoc techniques
     - **Be aware that the asset move plan is actually asset send plan that doesn't care of price slippage and fees**
