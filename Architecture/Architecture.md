@@ -65,7 +65,7 @@
 ##  1. <a name='Overallstatetransition'></a>Overall state transition
 <br>
 
-###  1.1. <a name='Definition'></a>1.1 Definition
+###  <a name='Definition'></a>1.1 Definition
 <br>
 
 - **Asset state** is the state of what amounts of what tokens, including LP tokens, on what chains are, at the given moment of time, 
@@ -200,7 +200,7 @@ We classify asset moves into the following two groups:
 An asset move plan is a set of elementary asset move instructions. We need to eliminate redundant value flows from asset move plans to save the cost of executing the plan.
 <br> 
 
-A regular asset move plan as a plan that has no redundant value flows. **For any asset move plan, there exists a unique regular equivalent of the original plan.**
+A regular asset move plan as a plan that has no redundant value flows. **For any asset move plan, there exists a regular equivalent of the original plan. It should be unique.**
 
 Below comes two example of asset move plan: an irregular plan and its regular equivalet:
 
@@ -222,7 +222,7 @@ We deduce the following design decisions:
 - We believe that ChainWallet will be the best place for regular **Inter-Chain Moves**. It means **Inter-Chain Moves** will be between ChainWallets.
 - We need one special vault that oversees the cooperation between vaults, including itself, at decentralization level.
     - **Master vault**: the special vault
-    - **Home chain**: the chain that hosts the master vault
+    - **Master chain**: the chain that hosts the master vault
 <br><br>
 
 ###  3.4. <a name='Upgradingstaking'></a>Upgrading staking
@@ -237,7 +237,7 @@ This algorithm will be implemented off-chain, because
 
 **This algorithm handles assets**:
 - in their USDC-equivalent on the chain, rather than in their own token, when working intra-chain
-- in their equivalent of home chains' USDC or the largest giving chains's USDC
+- in their equivalent of master chains' USDC or the largest giving chains's USDC
 - we hope USDC on all chains will have exactly the same price
 <br>
 
@@ -358,7 +358,7 @@ The design decisions are as illustrated in the following figure:
 
 Functional modules are described below:
 - **Secondary vault contract**: This module is a smart contract and deployed on each chain except the home chain. It participates in the cooperation with its peer **Secondary vault contract**s to implement **Control asset move**, This module has at least the following private operations that work locally on its chain: collect_reward(...) and move_staking_asset(...)
-- **Master vault contract**: This module is a smart contract, has global operations, in addition to the local operations inherited from **Secondary vault contract**, and is deployed on one and only one of the chains, called **Home chain**, where it takes the role of **Secondary vault contract**, as well as the the unique role of the master vault operating **LP token contract**.
+- **Master vault contract**: This module is a smart contract, has global operations, in addition to the local operations inherited from **Secondary vault contract**, and is deployed on one and only one of the chains, called **Master chain**, where it takes the role of **Secondary vault contract**, as well as the the unique role of the master vault operating **LP token contract**.
 - **LP token contract**: This module manages the LP token balances of **User**s, which represents their proportional share of the total assets of the system.
 - **User wallet**: This is a blockchain wallet and identifies a **User**. **User**'s actions; like deposit, withdraw, and harvest; are authenticated/authorized with this wallet.
 - **Vault account**: It is the blockchain account of, and controlled by, **Secondary vault contract** and used to store temporary assets, like funds pending staking.
@@ -616,6 +616,21 @@ Some vault operations should be decentralized to meet the requirements. Tracking
 - Sending LP from users' wallets to vaults, on users' withdrawal requests
 - Calculating asset amount to send to users, in return for their returned LP tokens
 - Sending assets from vaults to users' wallets, on users' withdrawal requests
+<br><br>
+
+<p align="center">
+  <img src=".\Get_asset_state Sequence.PNG" width="1280" title="vault use cases" style="page-break-before: avoid;">
+</p>
+<br>
+
+<p align="center">
+  <img src=".\Generate optimal transition plan.PNG" width="1280" title="vault use cases" style="page-break-before: avoid;">
+</p>
+<br>
+
+<p align="center">
+  <img src=".\Execute staking transition plan.PNG" width="1280" title="vault use cases" style="page-break-before: avoid;">
+</p>
 <br>
 
 ###  8.3. <a name='Operationsexemptibleofdecentralization'></a>Operations exemptible of decentralization
