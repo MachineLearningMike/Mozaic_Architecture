@@ -200,7 +200,7 @@ We classify asset moves into the following two groups:
 An asset move plan is a set of elementary asset move instructions. We need to eliminate redundant value flows from asset move plans to save the cost of executing the plan.
 <br> 
 
-A regular asset move plan as a plan that has no redundant value flows. **For any asset move plan, there exists a regular equivalent of the original plan. It should be unique.**
+A regular asset move plan as a plan that has no redundant value flows. **For any asset move plan, there exists a regular equivalent of the original plan. It should be unique and easy to find.**
 
 Below comes two example of asset move plan: an irregular plan and its regular equivalet:
 
