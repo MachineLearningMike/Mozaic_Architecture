@@ -1,6 +1,58 @@
+<br><br><br><br><br><br><br><br>
+
+# <p style="text-align: center;">Architectural Decisions</p>
 
 
-## <p style="text-align: center;">Architectural Decisions</p>
+<div style="page-break-after: always;"></div>
+<br><br><br><br>
+
+**Table of Contents**
+<br><br>
+
+<!-- vscode-markdown-toc -->
+* 1. [Overall state transition](#Overallstatetransition)
+	* 1.1. [1.1 Definition](#Definition)
+	* 1.2. [Design decisions](#Designdecisions)
+	* 1.3. [Visual description](#Visualdescription)
+* 2. [Local vaults](#Localvaults)
+	* 2.1. [Vaults as smart contracts](#Vaultsassmartcontracts)
+	* 2.2. [Limited responsibility](#Limitedresponsibility)
+	* 2.3. [Local transportation to/from wallets](#Localtransportationtofromwallets)
+	* 2.4. [Local moves of Staking stock](#LocalmovesofStakingstock)
+* 3. [Omnichain staking](#Omnichainstaking)
+	* 3.1. [Definition](#Definition-1)
+	* 3.2. [Regular asset move plans](#Regularassetmoveplans)
+	* 3.3. [Design decisions](#Designdecisions-1)
+	* 3.4. [Upgrading staking](#Upgradingstaking)
+* 4. [Omnichain LP token](#OmnichainLPtoken)
+	* 4.1. [Requirements analysis](#Requirementsanalysis)
+	* 4.2. [Design decisions](#Designdecisions-1)
+* 5. [Logical components layout](#Logicalcomponentslayout)
+* 6. [Omnichain vault](#Omnichainvault)
+* 7. [Staking planner](#Stakingplanner)
+	* 7.1. [Task definition](#Taskdefinition)
+	* 7.2. [Definition](#Definition-1)
+	* 7.3. [Formula](#Formula)
+* 8. [Inter-chain transportation](#Inter-chaintransportation)
+	* 8.1. [Considerations](#Considerations)
+	* 8.2. [ Decentralized operations required](#Decentralizedoperationsrequired)
+	* 8.3. [Operations exemptible of decentralization](#Operationsexemptibleofdecentralization)
+	* 8.4. [Design recommendations](#Designrecommendations)
+	* 8.5. [An off-chain detour for inter-chain transportation](#Anoff-chaindetourforinter-chaintransportation)
+* 9. [Gas supply](#Gassupply)
+	* 9.1. [Considerations](#Considerations-1)
+	* 9.2. [Design recommendations](#Designrecommendations-1)
+
+<!-- vscode-markdown-toc-config
+	numbering=true
+	autoSave=true
+	/vscode-markdown-toc-config -->
+<!-- /vscode-markdown-toc -->
+
+<div style="page-break-after: always;"></div>
+<br><br>
+
+# <p style="text-align: center;">Architectural Decisions</p>
 
 - Definition
     - Mozaic, the system, and Mozaic system refers to the software system that this project is going to develop, launch, and operate.
@@ -10,14 +62,10 @@
 <br>
 
 
-
-
-
-
-### **1. Overall state transition**
+##  1. <a name='Overallstatetransition'></a>Overall state transition
 <br>
 
-#### **1.1 Definition**
+###  1.1. <a name='Definition'></a>1.1 Definition
 <br>
 
 - **Asset state** is the state of what amounts of what tokens, including LP tokens, on what chains are, at the given moment of time, 
@@ -33,7 +81,7 @@
 - If the system does **Optimize asset/request state**, it changes the states to earn optimal staking reward.
 <br><br>
 
-#### **1.2 Design decisions**
+###  1.2. <a name='Designdecisions'></a>Design decisions
 
 We choose the Sleeping-then_Optimizing model for the overall system behavior. 
 - The system will not always be optimizing, but sleeping most of the time accepting deposit/withdrawal requests from users.
@@ -49,25 +97,25 @@ We choose the Sleeping-then_Optimizing model for the overall system behavior.
 - When entering the **Optimization process**, or the **Optimizing** state, the system will take a snapshot of the asset/request state. Then the system transforms/changes the states to optimal states for maximum reward, while continuing to **accept** deposit/withdrawal requests, which will be handled at the next round of optimization.
 <br><br>
 
-#### **1.3 Visual description**
+###  1.3. <a name='Visualdescription'></a>Visual description
 <br>
 The Sleeping-then_Optimizing model of behavior can be expressed in a UML State Machine diagram shown below:
 <br><br>
 
 <p align="center">
-  <img src=".\High-leve state machine 1.0.PNG" width="1280" title="high-level use cases">
+  <img src=".\High-leve state machine 1.0.PNG" width="1280" title="high-level use cases" style="page-break-after: avoid;">
 </p>
 
-<div style="page-break-after: always;"></div>
-<br>
+<div style="page-break-after: auto;"></div>
+<br><br>
 
-### **2. Vaults' local responsibility**
+##  2. <a name='Localvaults'></a>Local vaults
 <br>
 We need a module that implements the use case **Control asset move** identified in the requirements specification, solely, and completely. We call the module the vault, for the following reasons.
 
 <br>
 
-#### **2.1 Vaults are smart contracts**
+###  2.1. <a name='Vaultsassmartcontracts'></a>Vaults as smart contracts
 According to the requirements, vaults are responsible to, exclusively and at the decentralization level,
 - keep track of all changes to asset/request state, defined in the previous section
 - execute all changes to asset/request state,
@@ -77,14 +125,14 @@ According to the requirements, vaults are responsible to, exclusively and at the
 The only way is to deploy smart contracts on chains that cooperate with each other to form an abstract vault module. We call them vaults or vault contracts.
 <br><br>
 
-#### **2.2 Vaults have limited responsibility**
+###  2.2. <a name='Limitedresponsibility'></a>Limited responsibility
 
 According to the requirements, vaults do *not* have to 
 - find an optimal asset state to **Optimize asset/request state** to
 - execute asset move requests, like assetMovePlan identified in requirements, strictly, because there will not be negative profit.
 <br><br>
 
-#### **2.3 Vaults are responsible for local transportation of tokens to/from wallets**
+###  2.3. <a name='Localtransportationtofromwallets'></a>Local transportation to/from wallets
 - Pull asset from the user if a deposit involves a local token of asset to collect
 - Push LP to the user if a deposit involves the local LP token to return
 - Pull LP tokens from the user if a withdrawal involves the local LP token to collect
@@ -92,20 +140,20 @@ According to the requirements, vaults do *not* have to
 - Swap at local Dex pools
 <br><br>
 
-#### **2.4 Vaults are responsible for local moves of Staking stock**
+###  2.4. <a name='LocalmovesofStakingstock'></a>Local moves of Staking stock
 - Stake assets to local staking pools
 - Un-stake whole or partial assets from local staking pools
 - Collect rewards from local staking pools
 - Swap at local Dex pools
 <br><br>
 
-<div style="page-break-after: always;"></div>
-<br>
+<div style="page-break-after: auto;"></div>
+page-break
 
-### **3. Omnichain staking**
-<br>
+##  3. <a name='Omnichainstaking'></a>Omnichain staking
+page-break
 
-#### **3.1 Definition**
+###  3.1. <a name='Definition-1'></a>Definition
 <br>
 Omnichain staking requires that:
 
@@ -115,7 +163,8 @@ Omnichain staking requires that:
 - Rewards collected can be swapped/transferred, and staked in any staking pool on any listed chain, *guided by the system's optimization plan.*
 <br><br>
 
-For a given chain, we define the followings:
+**For a given chain, we define the followings:**
+<br>
 
 $ChainAssetPlaces = \{ChainVaultWallet\} \cup ChainStakingPools \cup ChainWithdrawalWallets$
 
@@ -146,7 +195,7 @@ We classify asset moves into the following two groups:
 
 <div style="page-break-after: auto;"></div>
 
-#### **3.2 Irregular vs. regular asset move plans**
+###  3.2. <a name='Regularassetmoveplans'></a>Regular asset move plans
 <br>
 An asset move plan is a set of elementary asset move instructions. We need to eliminate redundant value flows from asset move plans to save the cost of executing the plan.
 <br> 
@@ -165,7 +214,7 @@ Below comes two example of asset move plan: an irregular plan and its regular eq
 
 <div style="page-break-after: auto;"></div>
 
-#### **3.3 Design decisions**
+###  3.3. <a name='Designdecisions-1'></a>Design decisions
 <br>
 
 We deduce the following design decisions:
@@ -176,7 +225,7 @@ We deduce the following design decisions:
     - **Home chain**: the chain that hosts the master vault
 <br><br>
 
-#### **3.4 Directional algorithm for upgrading staking**
+###  3.4. <a name='Upgradingstaking'></a>Upgrading staking
 <br>
 This algorithm will be implemented off-chain, because
 
@@ -235,13 +284,13 @@ This algorithm will be implemented off-chain, because
 
 
 
-<div style="page-break-after: always;"></div>
+<div style="page-break-after: auto;"></div>
+<br><br>
+
+##  4. <a name='OmnichainLPtoken'></a>Omnichain LP token
 <br>
 
-### **4. Omnichain LP token**
-<br>
-
-#### **4.1 Requirements analysis**
+###  4.1. <a name='Requirementsanalysis'></a>Requirements analysis
 <br>
 Omnichain LP requires that:
 
@@ -262,7 +311,7 @@ Additional optional use cases of LP token may include:
 
 <br>
 
-#### **4.2 Design decisions**
+###  4.2. <a name='Designdecisions-1'></a>Design decisions
 <br>
 
 LP token contracts should be simple and can/should be highly decentralized.
@@ -272,7 +321,7 @@ LP token contracts should be simple and can/should be highly decentralized.
 - All LP token contracts will have the same functionality
     - there will not be master-slave or main-secondary relationship
     - this is to make LPs and chains as equal as possible
-- LP token contracts will be independent of vaults
+- LP token contracts will be independent of vaults, except that local vaults should be able to mint and burn local LP tokens 
     - LP token contracts will know be aware of vault contracts
     - LP tokens will be able to continue to work while vaults are in maintenance mode or being upgraded
 - LP token contracts will be independent of administration
@@ -294,15 +343,17 @@ LP token contracts should be simple and can/should be highly decentralized.
 
 
 <div style="page-break-after: always;"></div>
+<br><br>
+
+##  5. <a name='Logicalcomponentslayout'></a>Logical components layout
 <br>
 
-### **5. Logical components layout**
-<br>
+The overall architectural requiement for vault was/is to **minimize vault as much as possible** leaving most compute to off-chain modules.
 
 The design decisions are as illustrated in the following figure:
 <br><br>
 <p align="center">
-  <img src=".\High-level functional modules 1.0.PNG" width="1280" title="high-level functional modules">
+  <img src=".\High-level functional modules 1.0.PNG" width="1280" title="high-level functional modules" style="page-break-after: avoid;">
 </p>
 
 Functional modules are described below:
@@ -333,8 +384,9 @@ Functional modules are described below:
 
 
 <div style="page-break-after: always;"></div>
+<br><br>
 
-### **6. Omnichain vault**
+##  6. <a name='Omnichainvault'></a>Omnichain vault
 <br>
 
 We identify vaults through their surrounding modules interacting with them.
@@ -343,7 +395,7 @@ The external actors in the following use case diagram, together with their inter
 <br>
 
 <p align="center">
-  <img src=".\Vault use cases 1.0.PNG" width="1280" title="vault use cases">
+  <img src=".\Vault use cases 1.0.PNG" width="1280" title="vault use cases" style="page-break-after: avoid;">
 </p>
 <br>
 
@@ -379,14 +431,15 @@ The external actors in the following use case diagram, together with their inter
 
 <br><br>
 
-<div style="page-break-after: always;"></div>
+<div style="page-break-after: auto;"></div>
+<br><br>
 
-### **7. Staking planner**
+##  7. <a name='Stakingplanner'></a>Staking planner
 <br>
 Note. All errors, like numerical processing rounding and price slippage, are ignored at this stage of architectural design.
 <br><br>
 
-#### **7.1 Task definition**
+###  7.1. <a name='Taskdefinition'></a>Task definition
 
 - Goal: Calculate best staking portfolio, in order to
     - Save vault contracts long calculations of staking optimization, thus to save gas.
@@ -415,7 +468,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
 <br>
 
-#### **7.2 Definition**
+###  7.2. <a name='Definition-1'></a>Definition
 
 - **Pools state**
 
@@ -510,7 +563,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
         , where 0D, 0D, and 0R are a vector of zero values in their respective vector lengths.
 <br>
 
-#### **7.3 Formulae**
+###  7.3. <a name='Formula'></a>Formula
 
 If a state transition takes place at time $t$, Mozaic's asset state $MS^t$ changes to $MS^{t+}$ as shown in the following diagram: <br><br>
 
@@ -537,16 +590,63 @@ The formula essentially does:
 <br><br>
 
 
-<div style="page-break-after: always;"></div>
+<div style="page-break-after: auto;"></div>
+<br><br>
 
-### **8. Inter-chain transportation**
+##  8. <a name='Inter-chaintransportation'></a>Inter-chain transportation
 <br>
 
-(Coming soon)
+###  8.1. <a name='Considerations'></a>Considerations
 
+- Decentralized inter-chain transportation is required for omnichain-ness
+- Decentralized inter-chain transportation may lead to bad User Experience, for its inherent long asynchronous operation
+- As such, we need to reduce the use of inter-chain transportation as possible
+- **Not all inter-chain transportation need to be decentralized** (explained below)
+- Layer Zero is the de facto industry standard of decentralized inter-chain transportation service
 
-<div style="page-break-after: always;"></div>
-
-### **9. Gas**
+###  8.2. <a name='Decentralizedoperationsrequired'></a> Decentralized operations required
+Some vault operations should be decentralized to meet the requirements. Tracking of asset/LP amount should be executed decentrally, without intermediate off-chain agent or relayer, and with transparent loggs
+- Collecting pending rewards from all staking pools to vaults
+- Withdrawing from and staking to staking pools to/from vault
+- Query for local amounts of assset and LP token
+- Cooperation between vaults to calculate and exchange the information of asset/LP amounts and indexes derived therefrom
+- Sending assets from users' wallets to vaults, on users' deposit requests
+- Calculating LP amount to send to users, in return for their deposited assets
+- Sending LP tokens from vaults to users' wallets, on users' deposit requests
+- Sending LP from users' wallets to vaults, on users' withdrawal requests
+- Calculating asset amount to send to users, in return for their returned LP tokens
+- Sending assets from vaults to users' wallets, on users' withdrawal requests
 <br>
 
+###  8.3. <a name='Operationsexemptibleofdecentralization'></a>Operations exemptible of decentralization
+Vaults cooperation for staking optimization **does not have to be decentralized**, in the meaning that the optimization doesn't have to provide ideal maximum profit nor have to be successful
+- Collecting pools information from chains to off-chain modules, could be done by off-chain modules
+- Sending asset move plana to chains, could take detour via Mozaic off-chain modules with Admin wallets, at the risk of 
+    - the plan could be tempered by (inauditable/unautidited) Mozaic modules or hackers. (But the plan itself is calculated by off-chain modules.)
+    - the plan may even fail to be conveyed. (But this type of off-chain failture can also happen when we don't employ off-line detours.)
+- Relaying requests between local vaults, during transitioning to a new staking, could take detour via Mozaic off-chain modules with Admin wallets, with the same risks as above
+<br>
+
+###  8.4. <a name='Designrecommendations'></a>Design recommendations
+
+- We will choose *Centralized* inter-chain transportation between off-chain modules and vault contracts when finding new optimal staking portfolio and transitioning to the new staking
+- Inter-chain messages, once indentified as required, will carry as much information as possible.
+
+###  8.5. <a name='Anoff-chaindetourforinter-chaintransportation'></a>An off-chain detour for inter-chain transportation
+- An off-chain module monitors event logs of a smart contract for a target event happening
+- Once detected, the event will be consumed by off-chain modules to produce response
+- The produces response will be sent to a proper smart contract
+
+<div style="page-break-after: auto;"></div>
+<br>
+
+##  9. <a name='Gassupply'></a>Gas supply
+
+###  9.1. <a name='Considerations-1'></a>Considerations
+
+- Optimization will spend significant amout of gas, although we minimize vaults
+- Gas is spent chain-wise, although the profit generation is not necessarily chain-wise
+
+###  9.2. <a name='Designrecommendations-1'></a>Design recommendations
+- The initial version will be sourcing local gas fees from the local Staking stock. **If the local Staking stock is not sufficient for gas fees, the chain will be set inactive**.
+- Future versions will maintain a distributed treasure manager to provide local gas spending.
