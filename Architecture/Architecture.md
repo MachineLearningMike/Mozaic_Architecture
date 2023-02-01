@@ -129,7 +129,7 @@ The only way is to deploy smart contracts on chains that cooperate with each oth
 
 According to the requirements, vaults do *not* have to 
 - find an optimal asset state to **Optimize asset/request state** to
-- execute asset move requests, like assetMovePlan identified in requirements, strictly, because there will not be negative profit.
+- execute asset move requests, like transitionPlan identified in requirements, strictly, because there will not be negative profit.
 <br><br>
 
 ###  2.3. <a name='Localtransportationtofromwallets'></a>Local transportation to/from wallets
@@ -363,19 +363,19 @@ Functional modules are described below:
 - **User wallet**: This is a blockchain wallet and identifies a **User**. **User**'s actions; like deposit, withdraw, and harvest; are authenticated/authorized with this wallet.
 - **Vault account**: It is the blockchain account of, and controlled by, **Secondary vault contract** and used to store temporary assets, like funds pending staking.
 - **Treasury wallet**: This is a blockchain wallet, and a place to store and retrieve system revenues, like fees. It will be better if it is not owned by a human, but be the account of a smart contract that only obeys vault contracts, for better decentralization. It is deployed on all chains.
-- **Staking optimizer**: This is an off-chain module that can invoke **Master vault contract**s. This module is globally unique, calculates optimal **assetMovePlan**s, and lets the master vault to execute the plans (in cooperation with secondary vaults). *It is an important design decision that the assetMovePlan is calculated off-chain, thus leading to transparency and security debates, for the sake of gas- and time- savings:*
-    - Transparency debate: **User**s will not be able to track why the system chose particular **assetMovePlan**s technically.
-    - Security debate: If the calculation of **assetMovePlan** is hacked or compromised, then the system will make a less-optimal staking maneuver.
+- **Staking optimizer**: This is an off-chain module that can invoke **Master vault contract**s. This module is globally unique, calculates optimal **transitionPlan**s, and lets the master vault to execute the plans (in cooperation with secondary vaults). *It is an important design decision that the transitionPlan is calculated off-chain, thus leading to transparency and security debates, for the sake of gas- and time- savings:*
+    - Transparency debate: **User**s will not be able to track why the system chose particular **transitionPlan**s technically.
+    - Security debate: If the calculation of **transitionPlan** is hacked or compromised, then the system will make a less-optimal staking maneuver.
     - Justification: Only the second of the following concerns becomes less transparent, leading to both un-assured best profitability and assured huge gas- and time- savings.
         - how much of what assets from which pool to which pool, is the move about
         - whether all the asset moves are securely and/or reasonably/optimally chosen
         - whether all the asset moves are securely executed and logged
         - whether the move logs are readily available to check later
-        - whether the execution of assetMovePlan is integrated
+        - whether the execution of transitionPlan is integrated
 - **Trading optimizer**: This off-chain module is similar to **Staking optimizer**, except it relates to trading.
 - **Adimin wallet**: This wallet is used to invoke **Master vault contract", in privilege, on behalf of the administrator.
-- **Staking planner**: An integral component of **Staking optimizer**, this module predicts the next most profitable **staking_portfolio**, based on **poolsInfo** provided by **Pools tracker**. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fees and effectively disable the system.
-- **Transition planner**: An integral component of **Staking optimizer**, this module predicts the most efficient **assetMovePlan**, which is the best procedure of asset move that implements the transitioning to a given **staking_portfolio**, based on the current **poolsInfo**.
+- **Staking planner**: An integral component of **Staking optimizer**, this module predicts the next most profitable **staking_portfolio**, based on **poolsState** provided by **Pools tracker**. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fees and effectively disable the system.
+- **Transition planner**: An integral component of **Staking optimizer**, this module predicts the most efficient **transitionPlan**, which is the best procedure of asset move that implements the transitioning to a given **staking_portfolio**, based on the current **poolsState**.
 - **Trading optimizer**: This is similar to **Staking optimizer**, except that it relates to trading.
 - **Trading planner**: This is similar to **Staking planner**, except that it relates to trading.
 - **Pools tracker**: A shared module between **Staking optimizer** and **Trading optimizer**, this module retrieves and tracks all relevant information from chains, like Reward Release Speed, and total Staked LP of each pool. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fees and effectively disable the system.
@@ -421,12 +421,12 @@ The external actors in the following use case diagram, together with their inter
     - retrieves the books withdrawal request,
     - subtract fund, as much as covered by the returned LP tokens, from the total system assets, and
     - returns the fund to **User wallet**
-- **Control staking transition**: This use case transitions to a new asset state by executing **assetMovePlan** provided by **Staking optimizer**. (This is the most challenging part of vault implementation.) It does *collectively*, by using **Move staking asset**,
+- **Control staking transition**: This use case transitions to a new asset state by executing **transitionPlan** provided by **Staking optimizer**. (This is the most challenging part of vault implementation.) It does *collectively*, by using **Move staking asset**,
     - **Collect reward**,
     - Collect staked assets, to cover the fund to **Finish withdraw**,
     - **Finish deposit**,
     - **Finish withdraw**,
-    - execute remaining part of **assetMovePlan**
+    - execute remaining part of **transitionPlan**
 - **Control trading**: This use case executes **assetMovePlan** provided by **Trading optimizer**.
 
 <div style="page-break-after: auto;"></div>
@@ -451,7 +451,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
     - Deposit requests currently booked
     - Withdrawal requests currently booked
     - Current pending rewards
-    - Current poolsInfo
+    - Current poolsState
 <br>
 
 - Process
@@ -616,6 +616,20 @@ Some vault operations should be decentralized to meet the requirements. Tracking
 - Sending assets from vaults to users' wallets, on users' withdrawal requests
 <br><br>
 
+###  8.3. <a name='Operationsexemptibleofdecentralization'></a>Operations exemptible of decentralization
+Vaults cooperation for staking optimization **does not have to be decentralized**, in the meaning that the optimization doesn't have to provide ideal maximum profit nor have to be successful
+- Collecting pools information from chains to off-chain modules, could be done by off-chain modules
+- Sending asset move plana to chains, could take detour via Mozaic off-chain modules with Admin wallets, at the risk of 
+    - the plan could be tempered by (inauditable/unautidited) Mozaic modules or hackers. (But the plan itself is calculated by off-chain modules.)
+    - the plan may even fail to be conveyed. (But this type of off-chain failture can also happen when we don't employ off-line detours.)
+- Relaying requests between local vaults, during transitioning to a new staking, could take detour via Mozaic off-chain modules with Admin wallets, with the same risks as above
+<br>
+
+###  8.4. <a name='Designrecommendations'></a>Design recommendations
+
+- We will choose *decentralized* inter-chain transportation between off-chain modules and vault contracts when finding new optimal staking portfolio and transitioning to the new staking
+- Inter-chain messages, once identified as required, will carry as much information as possible.
+
 <p align="center">
   <img src=".\Get_asset_state Sequence.PNG" width="1280" title="vault use cases" style="page-break-before: avoid;">
 </p>
@@ -630,20 +644,6 @@ Some vault operations should be decentralized to meet the requirements. Tracking
   <img src=".\Execute staking transition plan.PNG" width="1280" title="vault use cases" style="page-break-before: avoid;">
 </p>
 <br>
-
-###  8.3. <a name='Operationsexemptibleofdecentralization'></a>Operations exemptible of decentralization
-Vaults cooperation for staking optimization **does not have to be decentralized**, in the meaning that the optimization doesn't have to provide ideal maximum profit nor have to be successful
-- Collecting pools information from chains to off-chain modules, could be done by off-chain modules
-- Sending asset move plana to chains, could take detour via Mozaic off-chain modules with Admin wallets, at the risk of 
-    - the plan could be tempered by (inauditable/unautidited) Mozaic modules or hackers. (But the plan itself is calculated by off-chain modules.)
-    - the plan may even fail to be conveyed. (But this type of off-chain failture can also happen when we don't employ off-line detours.)
-- Relaying requests between local vaults, during transitioning to a new staking, could take detour via Mozaic off-chain modules with Admin wallets, with the same risks as above
-<br>
-
-###  8.4. <a name='Designrecommendations'></a>Design recommendations
-
-- We will choose *Centralized* inter-chain transportation between off-chain modules and vault contracts when finding new optimal staking portfolio and transitioning to the new staking
-- Inter-chain messages, once indentified as required, will carry as much information as possible.
 
 ###  8.5. <a name='Anoff-chaindetourforinter-chaintransportation'></a>An off-chain detour for inter-chain transportation
 - An off-chain module monitors event logs of a smart contract for a target event happening
