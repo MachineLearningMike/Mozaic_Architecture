@@ -429,8 +429,6 @@ The external actors in the following use case diagram, together with their inter
     - execute remaining part of **assetMovePlan**
 - **Control trading**: This use case executes **assetMovePlan** provided by **Trading optimizer**.
 
-<br><br>
-
 <div style="page-break-after: auto;"></div>
 <br><br>
 
