@@ -39,9 +39,13 @@
 	* 8.3. [Operations exemptible of decentralization](#Operationsexemptibleofdecentralization)
 	* 8.4. [Design recommendations](#Designrecommendations)
 	* 8.5. [An off-chain detour for inter-chain transportation](#Anoff-chaindetourforinter-chaintransportation)
-* 9. [Gas supply](#Gassupply)
-	* 9.1. [Considerations](#Considerations-1)
+* 9. [Miscellaneous](#Miscellaneous)
+	* 9.1. [Compounding](#Compounding)
+		* 9.1.1. [Considerations](#Considerations-1)
 	* 9.2. [Design recommendations](#Designrecommendations-1)
+	* 9.3. [Gas supply](#Gassupply)
+		* 9.3.1. [Considerations](#Considerations-1)
+		* 9.3.2. [Design recommendations](#Designrecommendations-1)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -65,7 +69,7 @@
 ##  1. <a name='Overallstatetransition'></a>Overall state transition
 <br>
 
-###  <a name='Definition'></a>1.1 Definition
+###  1.1. <a name='Definition'></a>1.1 Definition
 <br>
 
 - **Asset state** is the state of what amounts of what tokens, including LP tokens, on what chains are, at the given moment of time, 
@@ -75,6 +79,7 @@
     - rewarded and pending harvesting
     - staying in system treasuries
     - pending withdrawal
+    - pending LP payment
 
 - **Request state** is the state of what deposit/withdrawal requests are accepted by the system and waiting for final processing, at the given moment of time.
 
@@ -653,13 +658,26 @@ Vaults cooperation for staking optimization **does not have to be decentralized*
 <div style="page-break-after: auto;"></div>
 <br>
 
-##  9. <a name='Gassupply'></a>Gas supply
+##  9. <a name='Miscellaneous'></a>Miscellaneous
 
-###  9.1. <a name='Considerations-1'></a>Considerations
+###  9.1. <a name='Compounding'></a>Compounding
 
-- Optimization will spend significant amout of gas, although we minimize vaults
-- Gas is spent chain-wise, although the profit generation is not necessarily chain-wise
+####  9.1.1. <a name='Considerations-1'></a>Considerations
+- Rewards should be compounded as frequently as possible, unless the gas fees grows larger than rewards
+- Compounding can be executed either:
+    - at stocking transition rounds
+    - or at its own intervals
 
 ###  9.2. <a name='Designrecommendations-1'></a>Design recommendations
+- Leave it open
+
+###  9.3. <a name='Gassupply'></a>Gas supply
+
+####  9.3.1. <a name='Considerations-1'></a>Considerations
+
+- Optimization will spend significant amount of gas, although we minimize vaults
+- Gas is spent chain-wise, although the profit generation is not necessarily chain-wise
+
+####  9.3.2. <a name='Designrecommendations-1'></a>Design recommendations
 - The initial version will be sourcing local gas fees from the local Staking stock. **If the local Staking stock is not sufficient for gas fees, the chain will be set inactive**.
 - Future versions will maintain a distributed treasure manager to provide local gas spending.
