@@ -479,16 +479,27 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
     where $PS_i$ is the $i$-th pool state: 
 
-    $PS_i = (RewardRate_i, RewardToken_i, TotalStake_i, StakingToken_i, MozaicStake_i)$
+    $PS_i = (RewardRate_i, RewardToken_i, TotalStake_i, StakingToken_i, MozaicStake_i, Price_i^R, Price_i^S)$
+
+    , where 
+    - $Price_i^R$ is the price of reward token
+    - $Price_i^S$ is the pirce of staking token
+    
+    <br>
 
     Note: We assume reward on $PS_i$ is calculated as:
 
     $MozaicReward_i = \frac {\normalsize RewardRate_i}{\normalsize TotakStake_i} \times MozaicStake_i $
+
+    If this assumption restricts the applicable staking pools, we have change the optimization algorithm.
 <br>
 
 - **Token vectors**
 
     - **User tokens vector**
+
+        All listed tokens on all listed chains, known to users.
+
         $UserTokens = \{UserToken_i | i=1..M\}$
 
     - **Reward tokens vector**
@@ -505,43 +516,39 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 <br>
 - **Asset vectors**
 
-    - **Vector of booked deposit requests**, at time index $t$
+    - **Vector of booked deposit requests**, at transition index $t$
     
-        $Deposits^t = \{D_i^t | D_i^t: deposit \space amount, at \space time \space t, \space denominated \space by \space UserToken_i. i=1..M \}$
-
-        Example: $Deposits^t$ of {1, 2, 3} means {1 USDT, 2 USDC, 3 ETH}, assuming $UserTokens = \{USDT, USDC, ETH\}$
+        $Deposits^t = \{ (D_i^t, \space dLP_i^t) \space | \space D_i^t: deposit \space amount \space denominated \space by \space UserToken_i, \space dLP_i^t: \space LP \space amount, \space all \space at \space transition \space t, . i=1..M \}$
 
     - **Vector of booked withdrawals requests**, at time index $t$
 
-        $Withdrawals^t = \{W_i^t | D_i^t: withdrawal \space amount, at \space time \space t, \space denominated \space by \space UserToken_i. i=1..M \}$
+        $Withdrawals^t = \{ (W_i^t, \space wLP_i^t) \space | \space D_i^t: withdrawal \space amount \space denominated \space by \space UserToken_i, \space wLP_i^t: \space LP \space amount, \space all \space at \space transition \space t,  . i=1..M \}$
 
-    - **Vector of collected rewards**, at time index $t$
+    - **Vector of collected rewards**, at transition index $t$
 
-        $Rewards^t = \{R_i^t | D_i^t: reward \space amount, at \space time \space t, \space denominated \space by \space RewardToken_i. i=1..M \}$
+        $Rewards^t = \{R_i^t \space | \space D_i^t: reward \space amount, at \space transition \space t, \space denominated \space by \space RewardToken_i. i=1..M \}$
 
-    - **Vector of staked assets**, at time index $t$
+    - **Vector of staked assets**, at transition index $t$
 
-        $Stakes^t = \{S_i^t | D_i^t: stake \space amount, at \space time \space t, \space denominated \space by \space StakingToken_i. i=1..M \}$
+        $Stakes^t = \{S_i^t \space | \space D_i^t: stake \space amount, at \space transition \space t, \space denominated \space by \space StakingToken_i. i=1..N \}$
 <br>
 - **Transformations**
 
     - **Transformation $USDT^{+1}$**
 
-        $USDT^{+1}$ transforms a Tokens-denominated asset vector to USDT-denominated vector, with market exchange rates.
+        $USDT^{+1}$ transforms denominated asset vector to USDT-denominated vector, by dividing them with relevant USDT prices.
 
         Example: $USDT^{+}$ transforms (1, 2, 3) to (1, 2.02, 1300), assuming UserTokens = (USDT, USDC, ETH) and USDT/USDC = 1.01 and USDT/ETH = 1300.
 
     - **Transformation $USDT^{-1}$**
 
-        $USDT^{-1}$ transforms a USDT-denominated asset vector to Tokens-denominated vector, with market exchange rates.
+        $USDT^{-1}$ transforms a USDT-denominated asset vector to Tokens-denominated vector, by multiplying them with relevant USDT prices.
 
         Example: $USDT^{-1}$ transforms (1, 2.02, 1300) to (1, 2, 3), assuming UserTokens = (USDT, USDC, ETH) and USDT/USDC = 1.01 and USDT/ETH = 1300.
 
-    - **Transformation $FOP$**
+    - **Transformation $FOP$** - the core of the Archimedes algorithm
 
-        $FOP$, standing for Find Optimal Portfolio, finds the best USDT-denominated vector of staked assets, for a given total USDT amount.
-
-        Example: $FOP$ transforms (12345) to the best staking of 123 USDT over staking pools, and has the format of USDT-denominated $Stakes^t$, like (100, 20, 3) all in USDT, assuming we have a total of 3 pools.
+        $FOP$, standing for Find Optimal Portfolio, finds the **best** USDT-denominated vector of staked assets for a given total USDT amount. In other words, *it finds what amounts of (USDT-denominated) value should be allocated to what staking pools for swap_and_staking, provided that the total (USDT-denominated) value is given*.  **best** is relative and subjective.
 
     - **Transformation $Sum$**
 
@@ -549,19 +556,22 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 <br>
 - **Mozaic's asset state**, at transition $t$
 
-    - Asset snapshot just before the transition that takes place at time $t$:
+    - Asset snapshot just before the transition that takes place at transition $t$:
 
         $MS^t = (Tokens, Deposits^t, - \space Withdrawals^t, Rewards^t, Stakes^t)$
 
         Or, simply, $MS^t = (T, D^t, - \space W^t, R^t, S^t)$
 
-    - Asset snapshot just after the transition that takes place at time $t$:
+        Note the "-" sign only applies to the asset amount of each element of the vector.
+
+    - Asset snapshot just after the transition $t$:
 
         $MS^{t+} = (Tokens, 0Deposits, - \space 0Withdrawals, 0Rewards, optimal \space Stakes^t)$
 
         Or, simply, $MS^{t+} = (T, 0D, - \space 0W, 0R, optimal \space S^t)$
 
-        , where 0D, 0D, and 0R are a vector of zero values in their respective vector lengths.
+        , where 0D, 0D, and 0R are a vector of zero valued elements of their respective types.
+
 <br>
 
 ###  7.3. <a name='Formula'></a>Formula
@@ -583,11 +593,11 @@ $optimial \space S^{t} = USDT^{-1} \circ FOP \circ Sum \circ USDT^{+1} (T, \spac
 <br>
 
 
-The formula essentially does:
-- collect all available assets: deposits pending staking, less withdrawals pending, plus rending rewards, and the current staking.
-- transform them to USDT and sum up to get a single number: Total in USDT.
-- allocate the Total in USDT optimally across all staking pools.
-- transform the allocated USDT amount back to the native tokens for the staking pools.
+**The formula essentially does**:
+- collect the quantity numbers of all asset amounts available for the new staking: deposited assets pending staking, less assets to send to withdraw-ers, plus the current staked assets, plus pending rewards,
+- transform them to a single USDT value: Total_in_USDT,
+- allocate the Total_in_USDT **optimally** across all staking pools, by using the FOP algorithm, Note: **optimally** is relative and subjective.
+- transform the allocated USDT amounts back to the native tokens on the staking pools.
 <br><br>
 
 
@@ -679,3 +689,22 @@ Vaults cooperation for staking optimization **does not have to be decentralized*
 ####  9.3.2. <a name='Designrecommendations-1'></a>Design recommendations
 - The initial version will be sourcing local gas fees from the local Staking stock. **If the local Staking stock is not sufficient for gas fees, the chain will be set inactive**.
 - Future versions will maintain a distributed treasure manager to provide local gas spending.
+
+### Auxiliary descriptions of the architecture
+
+#### Deposit / Withdraw - deposits and rewards mixed 1:1
+- We maintain a variable $deposits$ per user.
+- Alice's $deposits$ is now 170 stable coins.
+- Alice deposits 30 stable coins,
+    - Her $deposits$ increases by 30 to become 200.
+    - Her total LP token increases by some amount of LP token that is calculated to be the share of 30 in the system's resulting renewed Staking stock.
+- When she wants to withdraw with 20 LP tokens
+    - We first find she has a total 100 LP tokens
+    - Decrease her $deposits$ by 200 * 20 / 100 = 40 stable coins
+    - Return the withdrawal assets to her, say 120 stable coins, which is a mix of deposits and rewards
+    - We know she withdraws 40 principal deposit, together with 120 - 40 = 80 rewards
+- **Now, the performance fees = 80 * 10% = 8 stable coins.**
+- This means the withdrawal amount is forced to be a 1:1, which is not numerical but proportional, mix of original/principal deposits and rewards generated by staking/compounding them.
+- The system will not serve other mix ratios but 1:1, because a ratio is meaning less as $deposits$ and rewards are all mixed and work together with constant compounding.
+
+
