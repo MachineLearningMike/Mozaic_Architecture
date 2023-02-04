@@ -491,8 +491,6 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
     - **User tokens vector**
         $UserTokens = \{UserToken_i | i=1..M\}$
 
-        Example: $UserTokens = \{USDT, USDC, ETH, BNB, BTC\} $
-
     - **Reward tokens vector**
 
         $RewardTokens = \{RewardToken_i | i=1..N\}$
