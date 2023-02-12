@@ -4,10 +4,10 @@
 
 
 <div style="page-break-after: always;"></div>
-<br><br><br><br>
+<br><br>
 
 **Table of Contents**
-<br><br>
+<br>
 
 <!-- vscode-markdown-toc -->
 * 1. [Overall state transition](#Overallstatetransition)
@@ -346,8 +346,8 @@ This algorithm will be executed off-chain to produce a transition plan, because
 <br>
 
 We define the **asset instances on AssetPlaces** as:
-$$AssetPlaces^i \space = \{ (T, A, P) \space | \space place \space P \in AssetPlaces. \space Pplace \space P \space holds \space total \space A \space amount \space of \space T \space token. \space All \space (T, P) \space are \space unique.\}$$
-<br>
+$AssetPlaces^i \space = \{ (T, A, P) \space | \space place \space P \in AssetPlaces. \space Pplace \space P \space holds \space total \space A \space amount \space of \space T \space token. \space All \space (T, P) \space are \space unique.\}$
+
 Note: This definition is helpful because an asset place, like a wallet or contract, may have different token types of asset.
 <br>
 
@@ -714,8 +714,13 @@ $optimial \space S^{t} = USDT^{-1} \circ FOP \circ Sum \circ USDT^{+1} (T, \spac
 - Decentralized inter-chain transportation is required for omnichain-ness
 - Decentralized inter-chain transportation may lead to bad User Experience, for its inherent long asynchronous operation
 - As such, we need to reduce the use of inter-chain transportation as possible
-- **Not all inter-chain transportation need to be decentralized** (explained below)
 - Layer Zero is the de facto industry standard of decentralized inter-chain transportation service
+- There are total 6 cross-chain calls between the master vault and a (local) vault when the system carries out a round of optimization. (See below diagrams.)
+    - If the system is deployed on 10 chains and optimizes 24 times a day, we will have **1,440 cross-chain calls a day**.
+    - The 6 cascaded cross-chain calls may pose significant risks to integrity/consistency and User Experience, like runtime responsiveness and coding/maintenance complexity.
+- If we compromise on the integrity/consistency of optimization (not on asset moves), by adopting off-chain version of executing transition plans and thus exposing the system to rarely feasible hacking/attacks, then cross-chain calls will be cut down 50%, in return. (See below diagrams.)
+- **Not all inter-chain transportation need to be decentralized** (explained below)
+<br>
 
 ###  8.2. <a name='Decentralizedoperationsrequired'></a> Decentralized operations required
 Some vault operations should be decentralized to meet the requirements. Tracking of asset/mLP amount should be executed decentrally, without intermediate off-chain agent or relayer, and with transparent loggs
@@ -753,6 +758,7 @@ Vaults cooperation for staking optimization **does not have to be decentralized*
 
 - We will choose *decentralized* inter-chain transportation between off-chain modules and vault contracts when finding new optimal staking portfolio and transitioning to the new staking
 - Inter-chain messages, once identified as required, will carry as much information as possible.
+- Read the section "Reference source code" for more.
 
 <p align="center">
   <img src=".\Get_asset_state Sequence.PNG" width="1280" title="vault use cases" style="page-break-before: avoid;">
