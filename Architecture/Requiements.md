@@ -25,8 +25,6 @@
 - A user can transfer one version of mLP token from their wallet to any version of mLP token on any wallet or account.
 - The system should make sure that only the system can **stake** deposited assets to staking pools, subtract **unstake** from staking pools, collect pending rewards from staking pools, and **compound** rewards.
 - The system should be able to optimize staking globally to maximize staking rewards.
-- The system 
-- The system should be able to trade
 <br><br>
 
 
