@@ -17,7 +17,7 @@
 * 2. [Local vaults](#Localvaults)
 	* 2.1. [Vaults as smart contracts](#Vaultsassmartcontracts)
 	* 2.2. [Limited responsibility](#Limitedresponsibility)
-	* 2.3. [Local, home transportation to/from wallets](#Localhometransportationtofromwallets)
+	* 2.3. [Local transportation to/from wallets](#Localtransportationtofromwallets)
 	* 2.4. [Local moves of Staking Stock](#LocalmovesofStakingStock)
 * 3. [Omnichain staking](#Omnichainstaking)
 	* 3.1. [Definition](#Definition-1)
@@ -49,7 +49,7 @@
 		* 9.3.2. [Design recommendations](#Designrecommendations-1)
 	* 9.4. [Auxiliary descriptions of the architecture](#Auxiliarydescriptionsofthearchitecture)
 		* 9.4.1. [Deposit / Withdraw - deposits and rewards mixed 1:1](#DepositWithdraw-depositsandrewardsmixed1:1)
-* 10. [reference code](#referencecode)
+* 10. [Reference source code](#Referencesourcecode)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -73,7 +73,7 @@
 ##  1. <a name='Overallstatetransition'></a>Overall state transition
 <br>
 
-###  <a name='Definition'></a>1.1 Definition
+###  1.1. <a name='Definition'></a>1.1 Definition
 <br>
 
 - **System Asset Snapshot**, **system asset/request state**, or simply **asset state**, is the state at a given time and identified by the followings:
@@ -205,7 +205,7 @@ According to the requirements, vaults do *not* have to
 - execute strictly asset move requests coming from outside, like transitionPlan identified in requirements, because there will not be negative profit.
 <br><br>
 
-###  2.3. <a name='Localhometransportationtofromwallets'></a>Local transportation to/from wallets
+###  2.3. <a name='Localtransportationtofromwallets'></a>Local transportation to/from wallets
 <br>
 
 Local vaults are responsible to:
@@ -740,6 +740,12 @@ Transparent cross-chain transportation is the fundamental basis of omnichain ope
 </p>
 <br>
 
+**Debase on cross-chain transportation**
+- There are total 6 cross-chain calls between the master vault and a (local) vault when the system carries out a round of optimization. (See below diagrams.)
+    - If the system is deployed on 10 chains and optimizes 24 times a day, we will have **1,440 cross-chain calls a day**.
+    - The 6 cascaded cross-chain calls may pose significant risks to integrity/consistency and User Experience, like runtime responsiveness and coding/maintenance complexity.
+- If we compromise on the integrity/consistency of optimization (not on asset moves), by adopting off-chain version of executing transition plans and thus exposing the system to rarely feasible hacking/attacks, then cross-chain calls will be cut down 50%, in return. (See below diagrams.)
+<br><br>
 
 ###  8.4. <a name='Operationsexemptibleofdecentralization'></a>Operations exemptible of decentralization
 Vaults cooperation for staking optimization **does not have to be decentralized**, in the meaning that the optimization doesn't have to provide ideal maximum profit nor have to be successful
@@ -820,7 +826,7 @@ Vaults cooperation for staking optimization **does not have to be decentralized*
 - The system will not serve other mix ratios but 1:1, because a ratio is meaning less as $deposits$ and rewards are all mixed and work together with constant compounding.
 
 
-##  10. <a name='referencecode'></a>Reference source code
+##  10. <a name='Referencesourcecode'></a>Reference source code
 
 Below comes reference code that sketches and/or decides the code architecture.
 
