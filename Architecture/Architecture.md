@@ -156,7 +156,6 @@ According to the requirements, vaults do *not* have to
 <br><br>
 
 <div style="page-break-after: auto;"></div>
-page-break
 
 ##  3. <a name='Omnichainstaking'></a>Omnichain staking
 page-break
@@ -238,7 +237,6 @@ We deduce the following design decisions:
 This algorithm will be implemented off-chain, because
 
 <br>
-
 - it will save gas fees
 - the requirements don't require decentralization-level of asset move planning
 <br>
@@ -346,9 +344,6 @@ LP token contracts should be simple and can/should be highly decentralized.
     - This will incentivize more staking
     - Farming will be controlled by administration (Starget's decision models is interesting)
 <br>
-
-
-
 
 <div style="page-break-after: always;"></div>
 <br><br>
@@ -462,14 +457,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
     - Current poolsState
 <br>
 
-- Process
-
-    (See below)
-
-<br>
-
 - Output
-
     - optimal staking portfolio
 
 <br>
