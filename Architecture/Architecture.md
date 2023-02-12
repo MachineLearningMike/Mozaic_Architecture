@@ -740,13 +740,6 @@ Transparent cross-chain transportation is the fundamental basis of omnichain ope
 </p>
 <br>
 
-**Debase on cross-chain transportation**
-- There are total 6 cross-chain calls between the master vault and a (local) vault when the system carries out a round of optimization. (See below diagrams.)
-    - If the system is deployed on 10 chains and optimizes 24 times a day, we will have **1,440 cross-chain calls a day**.
-    - The 6 cascaded cross-chain calls may pose significant risks to integrity/consistency and User Experience, like runtime responsiveness and coding/maintenance complexity.
-- If we compromise on the integrity/consistency of optimization (not on asset moves), by adopting off-chain version of executing transition plans and thus exposing the system to rarely feasible hacking/attacks, then cross-chain calls will be cut down 50%, in return. (See below diagrams.)
-<br><br>
-
 ###  8.4. <a name='Operationsexemptibleofdecentralization'></a>Operations exemptible of decentralization
 Vaults cooperation for staking optimization **does not have to be decentralized**, in the meaning that the optimization doesn't have to provide ideal maximum profit nor have to be successful
 - Collecting pools information from chains to off-chain modules, could be done by off-chain modules
