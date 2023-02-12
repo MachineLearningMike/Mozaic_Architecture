@@ -36,9 +36,10 @@
 * 8. [Inter-chain transportation](#Inter-chaintransportation)
 	* 8.1. [Considerations](#Considerations)
 	* 8.2. [ Decentralized operations required](#Decentralizedoperationsrequired)
-	* 8.3. [Operations exemptible of decentralization](#Operationsexemptibleofdecentralization)
-	* 8.4. [Design recommendations](#Designrecommendations)
-	* 8.5. [An off-chain detour for inter-chain transportation](#Anoff-chaindetourforinter-chaintransportation)
+	* 8.3. [Employ the LayerZero service](#EmploytheLayerZeroservice)
+	* 8.4. [Operations exemptible of decentralization](#Operationsexemptibleofdecentralization)
+	* 8.5. [Design recommendations](#Designrecommendations)
+	* 8.6. [An off-chain detour for inter-chain transportation](#Anoff-chaindetourforinter-chaintransportation)
 * 9. [Miscellaneous](#Miscellaneous)
 	* 9.1. [Compounding](#Compounding)
 		* 9.1.1. [Considerations](#Considerations-1)
@@ -46,6 +47,8 @@
 	* 9.3. [Gas supply](#Gassupply)
 		* 9.3.1. [Considerations](#Considerations-1)
 		* 9.3.2. [Design recommendations](#Designrecommendations-1)
+	* 9.4. [Auxiliary descriptions of the architecture](#Auxiliarydescriptionsofthearchitecture)
+		* 9.4.1. [Deposit / Withdraw - deposits and rewards mixed 1:1](#DepositWithdraw-depositsandrewardsmixed1:1)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -629,7 +632,16 @@ Some vault operations should be decentralized to meet the requirements. Tracking
 - Sending assets from vaults to users' wallets, on users' withdrawal requests
 <br><br>
 
-###  8.3. <a name='Operationsexemptibleofdecentralization'></a>Operations exemptible of decentralization
+###  8.3. <a name='EmploytheLayerZeroservice'></a>Employ the LayerZero service
+
+
+<p align="center">
+  <img src=".\Mozaic and LayerZero.PNG" width="1280" title="vault use cases" style="page-break-before: avoid;">
+</p>
+<br>
+
+
+###  8.4. <a name='Operationsexemptibleofdecentralization'></a>Operations exemptible of decentralization
 Vaults cooperation for staking optimization **does not have to be decentralized**, in the meaning that the optimization doesn't have to provide ideal maximum profit nor have to be successful
 - Collecting pools information from chains to off-chain modules, could be done by off-chain modules
 - Sending asset move plana to chains, could take detour via Mozaic off-chain modules with Admin wallets, at the risk of 
@@ -638,7 +650,7 @@ Vaults cooperation for staking optimization **does not have to be decentralized*
 - Relaying requests between local vaults, during transitioning to a new staking, could take detour via Mozaic off-chain modules with Admin wallets, with the same risks as above
 <br>
 
-###  8.4. <a name='Designrecommendations'></a>Design recommendations
+###  8.5. <a name='Designrecommendations'></a>Design recommendations
 
 - We will choose *decentralized* inter-chain transportation between off-chain modules and vault contracts when finding new optimal staking portfolio and transitioning to the new staking
 - Inter-chain messages, once identified as required, will carry as much information as possible.
@@ -658,7 +670,7 @@ Vaults cooperation for staking optimization **does not have to be decentralized*
 </p>
 <br>
 
-###  8.5. <a name='Anoff-chaindetourforinter-chaintransportation'></a>An off-chain detour for inter-chain transportation
+###  8.6. <a name='Anoff-chaindetourforinter-chaintransportation'></a>An off-chain detour for inter-chain transportation
 - An off-chain module monitors event logs of a smart contract for a target event happening
 - Once detected, the event will be consumed by off-chain modules to produce response
 - The produces response will be sent to a proper smart contract
@@ -690,9 +702,9 @@ Vaults cooperation for staking optimization **does not have to be decentralized*
 - The initial version will be sourcing local gas fees from the local Staking stock. **If the local Staking stock is not sufficient for gas fees, the chain will be set inactive**.
 - Future versions will maintain a distributed treasure manager to provide local gas spending.
 
-### Auxiliary descriptions of the architecture
+###  9.4. <a name='Auxiliarydescriptionsofthearchitecture'></a>Auxiliary descriptions of the architecture
 
-#### Deposit / Withdraw - deposits and rewards mixed 1:1
+####  9.4.1. <a name='DepositWithdraw-depositsandrewardsmixed1:1'></a>Deposit / Withdraw - deposits and rewards mixed 1:1
 - We maintain a variable $deposits$ per user.
 - Alice's $deposits$ is now 170 stable coins.
 - Alice deposits 30 stable coins,
