@@ -75,8 +75,6 @@
 ###  1.1. <a name='Definition'></a>1.1 Definition
 <br>
 
-- **Asset(s)** is any amount of a listed token on a listed chain.
-
 - **System Asset Snapshot**, **system asset/request state**, or simply **asset state**, is the state at a given time and identified by the followings:
 <br><br> 
     - Note: 
@@ -221,7 +219,6 @@ According to the requirements, vaults do *not* have to
 <div style="page-break-after: auto;"></div>
 
 ##  3. <a name='Omnichainstaking'></a>Omnichain staking
-page-break
 
 ###  3.1. <a name='Definition-1'></a>Definition
 <br>
