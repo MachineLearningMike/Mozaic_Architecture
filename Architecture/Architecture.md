@@ -17,17 +17,17 @@
 * 2. [Local vaults](#Localvaults)
 	* 2.1. [Vaults as smart contracts](#Vaultsassmartcontracts)
 	* 2.2. [Limited responsibility](#Limitedresponsibility)
-	* 2.3. [Local transportation to/from wallets](#Localtransportationtofromwallets)
-	* 2.4. [Local moves of Staking Stock](#LocalmovesofStakingstock)
+	* 2.3. [Local, home transportation to/from wallets](#Localhometransportationtofromwallets)
+	* 2.4. [Local moves of Staking Stock](#LocalmovesofStakingStock)
 * 3. [Omnichain staking](#Omnichainstaking)
 	* 3.1. [Definition](#Definition-1)
 	* 3.2. [Regular asset move plans](#Regularassetmoveplans)
 	* 3.3. [Design decisions](#Designdecisions-1)
-	* 3.4. [Upgrading staking](#Upgradingstaking)
-* 4. [Omnichain mLP token](#OmnichainLPtoken)
+	* 3.4. [Transitioning staking](#Transitioningstaking)
+* 4. [Omnichain mLP token](#OmnichainmLPtoken)
 	* 4.1. [Requirements analysis](#Requirementsanalysis)
 	* 4.2. [Design decisions](#Designdecisions-1)
-* 5. [Logical components layout](#Logicalcomponentslayout)
+* 5. [Logical components](#Logicalcomponents)
 * 6. [Omnichain vault](#Omnichainvault)
 * 7. [Staking planner](#Stakingplanner)
 	* 7.1. [Task definition](#Taskdefinition)
@@ -49,6 +49,7 @@
 		* 9.3.2. [Design recommendations](#Designrecommendations-1)
 	* 9.4. [Auxiliary descriptions of the architecture](#Auxiliarydescriptionsofthearchitecture)
 		* 9.4.1. [Deposit / Withdraw - deposits and rewards mixed 1:1](#DepositWithdraw-depositsandrewardsmixed1:1)
+* 10. [reference code](#referencecode)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
@@ -72,17 +73,17 @@
 ##  1. <a name='Overallstatetransition'></a>Overall state transition
 <br>
 
-###  1.1. <a name='Definition'></a>1.1 Definition
+###  <a name='Definition'></a>1.1 Definition
 <br>
 
 - **System Asset Snapshot**, **system asset/request state**, or simply **asset state**, is the state at a given time and identified by the followings:
-<br><br> 
+<br>
     - Note: 
-        - The following code is an architecture of concepts and is not necessarily the implementation code. More work is needed to optimize the code. 
+        - The following pseudo-code is to describe concepts consciously and not the implementation code.
         - Different fields of the following structures are calculated at different states.
 <br><br>
 
-    - **Deposits**: All deposit requests. 
+    - **Deposits**: All deposit requests.
         A deposit request can be modeled by:
     ```
         struct Deposit {    // sends assets to the system and receives mLP in return
@@ -146,23 +147,28 @@
 
 ###  1.2. <a name='Designdecisions'></a>Design decisions
 
-We choose the **Stay-then_Transition** model for the overall system behavior. 
-- The system will not always be optimizing, but sleeping most of the time accepting deposit/withdrawal requests from users.
+We choose the **Toggle-Between-Optimize-and_Stay** model for the overall system behavior. 
+- The system will not always be transitioning, but staying most of the time accepting deposit/withdrawal requests from users.
 - If the system **accept**s a deposit request, it 
-    - collects the asset the user wants to deposit, (on the asset's chain)
-    - tells the user to wait until the next optimization round, when the system will send mLP tokens to the user in return for the asset,
+    - collects the asset the user wants to deposit, on the asset's chain,
+    - tells the user to wait until the next optimization round, when the system will send some mLP tokens to the user in return for the asset,
     - and book the request with the system for later processing.
-- If the system **accept**s a withdraw request, it
-    - collects the mLP tokens the user wants to return, (on the mLP's chain)
-    - tells the user to wait until the next optimization round, when the system will send some asset of the requested token type,
+- If the system **accept**s a withdrawal request, it
+    - collects the mLP tokens the user wants to return, on the mLP's chain,
+    - tells the user to wait until the next optimization round, when the system will send some assets of the requested token type in return for the mLP tokens,
     - and book the request with the system for later processing.
-- The system will **optimize system asset snapshot** at regular or irregular intervals. The frequency of optimization rounds will be optimized, as frequent moves of asset may incur more costs while infrequent optimization rounds will hinder from quick maneuver of staking.
-- When entering the **Optimization process**, or the **Optimizing** state, the system will take a **system asset snapshot**. Then the system transforms/changes the states to optimal states for more rewards, while continuing to **accept** deposit/withdrawal requests, which will be handled at the next round of optimization.
+- The system will **optimize system asset/request state**, or **transition to new staking** at regular or irregular intervals. The frequency of optimization rounds will be optimized, as frequent moves of asset may incur more costs while infrequent optimization rounds will hinder from quick maneuver of staking.
+- When an optimization round is requested, the system leaves the **Staying** state and enters the **Optimizing** state.
+- When entering the **Optimizing** state, or an **Optimization round**, the system takes a **system asset/request snapshot**. Then the system transforms/changes the state to an optimal **system asset state** for more rewards, while continuing to **accept** deposit/withdrawal requests, which will be handled at the next round of optimization.
+- When an optimization round is finished, the system leaves the **Optimizing** state and enters the **Staying** state.
+- In the **Staying** state, the system does nothing but continues to **accept** deposit/withdrawal requests, which will be handled at the next round of optimization.
+
 <br><br>
 
 ###  1.3. <a name='Visualdescription'></a>Visual description
 <br>
-The Sleeping-then_Optimizing model of behavior can be expressed in a UML State Machine diagram shown below:
+
+The **Toggle-Between-Optimize-and_Stay** model of behavior can be expressed in a UML State Machine diagram shown below:
 <br><br>
 
 <p align="center">
@@ -174,28 +180,35 @@ The Sleeping-then_Optimizing model of behavior can be expressed in a UML State M
 
 ##  2. <a name='Localvaults'></a>Local vaults
 <br>
-We need a module that implements the use case **Control asset move** identified in the requirements specification, solely, and completely. We call the module the vault, for the following reasons.
+
+We need a module that implements the use case **Control asset move** identified in the requirements specification, solely and completely. We call the module the vault, because from users' perspective:
+- the module keeps users' assets, control and logs moves of the assets and profits generated from the assets, and returns the assets with profits.
+- no modules other than that module have privilege to carry out these tasks.
 
 <br>
 
 ###  2.1. <a name='Vaultsassmartcontracts'></a>Vaults as smart contracts
 According to the requirements, vaults are responsible to, exclusively and at the decentralization level,
-- keep track of all changes to asset/request state, defined in the previous section
-- execute all changes to asset/request state,
-- log all changes to asset/request state.
+- make
+- log
+
+all changes to **asset/request state**,
 <br>
 
-The only way is to deploy smart contracts on chains that cooperate with each other to form an omnichain vault module. We call them vaults or vault contracts.
+The only way is to deploy smart contracts on chains that cooperate with each other to form an omnichain vault module. We call them local vaults or vault contracts individaully, while they collectively form an omnichain vault.
 <br><br>
 
 ###  2.2. <a name='Limitedresponsibility'></a>Limited responsibility
 
 According to the requirements, vaults do *not* have to 
-- find the *best possible* asset state to **Optimize asset/request state** to
-- execute asset move requests, like transitionPlan identified in requirements, strictly, because there will not be negative profit.
+- find the *best possible* asset state to **optimize asset/request state** to
+- execute strictly asset move requests coming from outside, like transitionPlan identified in requirements, because there will not be negative profit.
 <br><br>
 
-###  2.3. <a name='Localtransportationtofromwallets'></a>Local, home transportation to/from wallets
+###  2.3. <a name='Localhometransportationtofromwallets'></a>Local transportation to/from wallets
+<br>
+
+Local vaults are responsible to:
 
 - Pull assets from the user if a deposit request involves a home token
 - Export a deposit request if it involves an away mLP token
@@ -207,11 +220,16 @@ According to the requirements, vaults do *not* have to
 - Import an exported withdrawal request if it involves a home token
 - Push asset to the user if a withdrawal request involves a home token
 - Swap at local Dex pools
+
+See the **Reference source code** section for more clarity.
 <br><br>
 
-###  2.4. <a name='LocalmovesofStakingstock'></a>Local moves of Staking Stock
+###  2.4. <a name='LocalmovesofStakingStock'></a>Local moves of Staking Stock
+<br>
+Local vaults are responsible to:
+
 - Stake assets to local staking pools
-- Un-stake whole or partial assets from local staking pools
+- Un-stake assets from local staking pools
 - Collect rewards from local staking pools
 - Swap at local Dex pools
 <br><br>
@@ -224,9 +242,9 @@ According to the requirements, vaults do *not* have to
 <br>
 Omnichain staking requires that:
 
-- Assets can be deposited in any listed token format on any listed chain, *at users' request*.
+- Assets can be deposited in any listed token format on any listed chain, *all of users' choice*.
 - Deposited assets can be swapped/transferred, and staked in any staking pool on any listed chain, *guided by the system's optimization plan*.
-- Staked assets and rewards can be withdrawn in any listed token format on any listed chian, *at users' request*.
+- Staked assets and rewards can be withdrawn in any listed token format on any listed chian, *all of users' choice*.
 - Rewards collected can be swapped/transferred, and staked in any staking pool on any listed chain, *guided by the system's optimization plan.*
 <br><br>
 
@@ -235,16 +253,21 @@ Omnichain staking requires that:
 
 $ChainAssetPlaces = \{ChainVaultWallet\} \cup ChainStakingPools \cup ChainDepositWallets \cup ChainWithdrawalWallets$
 
-- $ChainVaultWallet$: the vault's wallet on the given chain. They have 
+- $ChainVaultWallet$: the vault's wallet on the given chain. They hold from time to time:
     - **Deposits** assets that are pending staking
-- $ChainStakingPools$: all staking pools on the given chain. They have
-    - **Stakes** assets
-    - **Rewards** pending collecting
-- $ChainDepositWallets$: wallets of all users whose deposit requests are booked and who will receive mLP tokens on the given chain. They are linked to
-    - positive defined/undefined mLP amount to send to the users - the system has to calculate the amount based on the mLP token amount redeemed from the user.
-- $ChainWithdrawalWallets$: wallets of all users whose withdrawal requests are booked and who will receive withdrawal assets on the given chain. They are linked to
-    - negative defined/undefined asset to send to the users - the system has to calculate the amount based on the mLP token amount redeemed from the user.
-<br><br>
+    - other assets that are transient during optimization
+- $ChainStakingPools$: all staking pools on the given chain. They hold:
+    - **Stakes** assets,
+    - **Rewards** assets, pending collecting
+- $ChainDepositWallets$: wallets of all users whose deposit requests are booked and who will receive mLP tokens on the given chain. 
+    - They **will** receive an amount of mLP sent to the users - the system has to calculate the amount based on the mLP token amount redeemed from the user.
+    - The amount to receive will be denoted as a *negative number*.
+    - The undefined number will be denoted as **undefined**.
+- $ChainWithdrawalWallets$: wallets of all users whose withdrawal requests are booked and who will receive withdrawal assets on the given chain. 
+    - They **will** receive an amount of asset to sent to the users - the system has to calculate the amount based on the mLP token amount redeemed from the user.
+    - The amount to receive will be denoted as a *negative number*.
+    - The undefined number will be denoted as **undefined**.
+<br>
 
 $AllVaultWallets$: the set of $ChainVaultWallet$ of all listed chains.
 
@@ -253,11 +276,15 @@ $AllStakingPools$: the sum of $ChainStakingPools$ of all listed chains.
 $AllDepositWallets$: the sum of $ChainDepositWallets$ of all listed chains.
 
 $AllWithdrawalWallets$: the sum of $ChainWithdrawalWallets$ of all listed chains.
-<br><br>
+<br>
+
 $AllAssetPlaces = AllVaultWallets \cup AllStakingPools \cup AllDepositWallets \cup AllWithdrawalWallets$
-<br><br>
-We know an asset move is the move of asset, whether it changes the token type or not, between any two of $AllAssetPlaces$.
-<br><br>
+<br>
+
+**We know**:
+- an asset move is the move of assets, whether it changes the token type or not, between any the same or different two of $AllAssetPlaces$.
+- all asset places have an amount of assets, whether the amount be positive, negative, or **undefined**.
+<br>
 
 We classify asset moves into the following two groups:
 - **Inter-Chain Moves** of a given chain: asset moves that take place between any two of $Chian Asset Placse$ of the given chain
@@ -291,14 +318,14 @@ Below comes two example of asset move plan: an irregular plan and its regular eq
 **We deduce the following design decisions:**
 <br>
 - Asset moves will be **regularized**. We believe regularization will reduce the total cost of asset moves and the number of inter-chain swap/transfers.
-- **ChainValutWallet** will be the hub for regular **Inter-Chain Moves**. This means an **Intra-Chain Move** will be between the **ChainValutWallet** and another of **ChainAssetPlaces**. We wil *not* allow direct asset moves between **ChainAssetPlaces** that are not **ChainVaultWallet**.
+- **ChainValutWallet** will be the hub for regular **Intra-Chain Moves**. This means an **Intra-Chain Move** will be between the **ChainValutWallet** and another of **ChainAssetPlaces**. We wil *not* allow direct asset moves between **ChainAssetPlaces** that are not **ChainVaultWallet**.
 - We need one special vault that oversees the cooperation between vaults, including itself, at decentralization level.
     - **Master vault**: the special vault
     - **Master chain**: the chain that hosts the master vault
-- The **Master vault** will be the hub for regular **Intra-Chain Moves**. This means an **Inter-Chain Move** will between the **Master vault** and another of local vaults. We wil *not* allow direct asset moves between **ChainAssetPlaces** of different chains.
+- The **Master vault** will be the hub for regular **Inter-Chain Moves**. This means an **Inter-Chain Move** will between the **Master vault** and another of local vaults. We wil *not* allow direct asset moves between **ChainAssetPlaces** of different chains.
 <br><br>
 
-###  3.4. <a name='Upgradingstaking'></a>Transitioning staking
+###  3.4. <a name='Transitioningstaking'></a>Transitioning staking
 <br>
 This algorithm will be executed off-chain to produce a transition plan, because
 
@@ -318,54 +345,60 @@ This algorithm will be executed off-chain to produce a transition plan, because
 **Algorithm**
 <br>
 
+We define the **asset instances on AssetPlaces** as:
+$$AssetPlaces^i \space = \{ (T, A, P) \space | \space place \space P \in AssetPlaces. \space Pplace \space P \space holds \space total \space A \space amount \space of \space T \space token. \space All \space (T, P) \space are \space unique.\}$$
+<br>
+Note: This definition is helpful because an asset place, like a wallet or contract, may have different token types of asset.
+<br>
+
 - Input: Target staking portfolio. (See the coming sections for optimal staking portfolio)
-- Output: A transition plan to the input staking portfolio
+- Output: A transition plan generated and executed in accordance with the input staking portfolio
 - Process:
-    - Classify asset places into giving places and taking places
-        - If the current asset amount is significantly greater than the target asset amount, it is a **giving asset place**
-        - If the current asset amount is significantly less than the target asset amount, it is a **taking asset place**
-            - **ChainWithdrawalWallets** are mandatory taking places, however small mLP to send
-            - **ChainDepositWallets** are mandatory taking places, however small assets to send
-        - Else, it is a neutral asset place
-        - An asset place has
-            - a positive **giving amount** if it is a giving asset place, else zero
-            - a positive **taking amount** if it is a taking asset place, else zero
-            - a zero giving amount and a zero taking amount if it is a neutral asset place.
+    - Confirm that the target staking portfolio specifies the target asset amount on asset instances.
+    - Classify asset instances in $AllAssetPlaces^i$ into giving instances and taking instances
+        - If the current asset amount is significantly greater than the target asset amount, it is a **giving asset instance**
+            - **ChainDepositWallets^i** are all giving asset instances
+        - If the current asset amount is significantly less than the target asset amount, it is a **taking asset instance**
+            - **ChainWithdrawalWallets^i** are all taking asset instances
+        - Else, it is a neutral asset instance
+        - An asset instance has
+            - a positive **giving amount** if it is a giving asset instance, else zero
+            - a positive **taking amount** if it is a taking asset instance, else zero
+            - a zero giving amount and a zero taking amount if it is a neutral asset instance.
     - Classify chains into giving chains and taking chains
-        - If the sum of giving amount of all ChainAsstPlaces is significantly greater than the sum of taking amount, it is a **giving chain**, and the difference is called the **surplus** assets of the giving chain.
+        - If the sum of giving amount of all asset instances in $ChainAsstPlaces^i$ of a given chain is significantly greater than the sum of taking amount, it is a **giving chain**, and the difference is called the **giving amount** of the giving chain.
             - Be careful not to harm deposits/withdrawals
-        - If the sum of giving amount of all ChainAsstPlaces is significantly less than the sum of taking amount, it is a **taking chain** and the **deficit assets** is defined for the taking chain.
+        - If the sum of taking amount of all asset instances in $ChainAsstPlaces^i$ of a given chain is significantly greater than the sum of giving amount, it is a **taking chain** and the difference is called the **taking amount** of the taking chain.
             - Be careful not to harm deposits/withdrawals
         - Else, it is a neutral chian
         - A chain has
             - a positive giving amount if it is a giving chain, else zero
             - a positive giving amount if it is a taking chain, else zero
             - a zero giving amount and a zero taking amount if it is a neutral chain
-    - Generate a regular intra-chain asset move plan, AssetMovePlan, for giving chains
+    - Generate a regular **intra-chain asset move plan** for giving chains
         - Collect the local swap prices and fees
-        - Make a distribution plan that divides the sum of giving amounts of giving asset places, into taking amounts of taking asset places. Be careful with dusts
-        - Regularize the plan by using the vault as a hub. (See previous sections)
-        - Conclude with the surplus assets of this giving chain. It should be a positive amount.
-        - **Be aware that the asset move plan is actually asset send plan that doesn't care of price slippage and fees**
-        - **Be aware that this plan does/can not take into account the actual price slippage and fees**
-    - Execute regular intra-chain asset move plans for giving chains.
-    - Transfer surplus assets on giving chains to taking chains
-        - Sum up surplus assets of giving chains to the master vault
-        - Make a distribution plan that divides the sum of surplus assets to taking chains
-        - Do not care of dust deficit amount. (Leave it to vaults' tunning operation)
-        - Now, an irregular asset move plan has been created
-        - Regularize the plan, by using graph theories and ad-hoc techniques
-        - **Be aware that the asset move plan is actually asset send plan that doesn't care of price slippage and fees**
-        - **Be aware that this plan does/can not take into account the actual price slippage and fees**
+        - Collect giving amounts of all giving asset instances to the vault.
+        - Swap, divide, and send the collected amount to fill the taking amounts of taking asset instances.
+        - Regularize the plan. (See previous sections)
+        - The giving amount of this giving chain should remain in the vault.
+    - Execute the regular intra-chain asset move plans for giving chains.
+    - Generate a regular **inter-chain asset move plan** that divides and transfers the giving amount of assets of giving chains to taking chains.
+        - Collect giving amounts of all giving asset chains to the master vault.
+        - Swap, divide, and send the collected amount to fill the taking amounts of taking chains.
+        - Regularize the plan.
+        - There should not remain transient assets in the master vault, except dusts.
+    - Execute the regular inter-chain asset move plan.
     - Generate a regular intra-chain asset move plan for taking chains
-        (the same as for giving chains)
+        (the same as with giving chains)
     - Execute regular intra-chain asset move plans for taking chains.
+<br>
 
+Note: This algorithm should be tweaked to cope with changing price slippages and fees, and numerical dusts, in implementation phases.
 
 <div style="page-break-after: auto;"></div>
 <br><br>
 
-##  4. <a name='OmnichainLPtoken'></a>Omnichain mLP token
+##  4. <a name='OmnichainmLPtoken'></a>Omnichain mLP token
 <br>
 
 ###  4.1. <a name='Requirementsanalysis'></a>Requirements analysis
@@ -412,7 +445,7 @@ mLP token contracts should be simple and can/should be highly decentralized.
 <div style="page-break-after: always;"></div>
 <br><br>
 
-##  5. <a name='Logicalcomponentslayout'></a>Logical components
+##  5. <a name='Logicalcomponents'></a>Logical components
 <br>
 
 The overall architectural requiement for vault was/is to **minimize vault as much as possible** leaving most compute to off-chain modules.
@@ -537,8 +570,13 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
     $PS_i = (RewardRate_i, RewardToken_i, TotalStake_i, StakingToken_i, MozaicStake_i, Price_i^R, Price_i^S)$
 
     , where 
-    - $Price_i^R$ is the price of reward token
-    - $Price_i^S$ is the pirce of staking token
+    - $RewardRate_i$ is the amount of reward emitted during a given time frame
+    - $RewardToken_i$ is the token type of reward
+    - $TotalStake_i$ is the total amount of staked asset in the pool
+    - $StakingToken_i$ is the token type of staked asset
+    - $MozaicStake_i$ is the amount of asset staked in the name of Mozaic
+    - $Price_i^R$ is the *average* price of reward token in the time frame
+    - $Price_i^S$ is the *average* price of staking token in the time frame
     
     <br>
 
@@ -546,7 +584,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
     $MozaicReward_i = \frac {\normalsize RewardRate_i}{\normalsize TotakStake_i} \times MozaicStake_i $
 
-    If this assumption restricts the applicable staking pools, we have change the optimization algorithm.
+    If this assumption restricts the applicable staking pools, we have to change the optimization algorithm.
 <br>
 
 - **Token vectors**
@@ -573,45 +611,45 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
     - **Vector of booked deposit requests**, at transition index $t$
     
-        $Deposits^t = \{ (D_i^t, \space dLP_i^t) \space | \space D_i^t: deposit \space amount \space denominated \space by \space UserToken_i, \space dLP_i^t: \space mLP \space amount, \space all \space at \space transition \space t, . i=1..M \}$
+        $Deposits^t = \{ (D_i^t, \space, T_i, \space dLP_i^t) \space | \space D_i^t: deposited \space amount \space denominated \space by \space token \space T_i, \space dLP_i^t: \space mLP \space amount, \space all \space at \space transition \space t, i=1..M \}$
 
     - **Vector of booked withdrawals requests**, at time index $t$
 
-        $Withdrawals^t = \{ (W_i^t, \space wLP_i^t) \space | \space D_i^t: withdrawal \space amount \space denominated \space by \space UserToken_i, \space wLP_i^t: \space mLP \space amount, \space all \space at \space transition \space t,  . i=1..M \}$
+        $Withdrawals^t = \{ (W_i^t, \space T_i, \space wLP_i^t) \space | \space D_i^t: withdrawal \space amount \space denominated \space by \space token \space T_i, \space wLP_i^t: \space mLP \space amount, \space all \space at \space transition \space t,  . i=1..M \}$
 
     - **Vector of collected rewards**, at transition index $t$
 
-        $Rewards^t = \{R_i^t \space | \space D_i^t: reward \space amount, at \space transition \space t, \space denominated \space by \space RewardToken_i. i=1..M \}$
+        $Rewards^t = \{ (R_i^t, \space T_i) | \space D_i^t: reward \space amount, \space denominated \space by \space \space token \space T_i, \space all \space at \space transition \space t, i=1..M \}$
 
     - **Vector of staked assets**, at transition index $t$
 
-        $Stakes^t = \{S_i^t \space | \space D_i^t: stake \space amount, at \space transition \space t, \space denominated \space by \space StakingToken_i. i=1..N \}$
+        $Stakes^t = \{ (S_i^t, \space T_i) | \space D_i^t: stake \space amount, \space denominated \space by \space token \space T_i, \space at \space transition \space t, i=1..N \}$
 <br>
 - **Transformations**
 
     - **Transformation $USDT^{+1}$**
 
-        $USDT^{+1}$ transforms denominated asset vector to USDT-denominated vector, by dividing them with relevant USDT prices.
+        $USDT^{+1}$ transforms an asset vector to USDT-denominated asset vector, by dividing them with relevant USDT prices.
 
-        Example: $USDT^{+}$ transforms (1, 2, 3) to (1, 2.02, 1300), assuming UserTokens = (USDT, USDC, ETH) and USDT/USDC = 1.01 and USDT/ETH = 1300.
+        Example: $USDT^{+}$ transforms (1 USDT, 2 USDC, 3 ETH) to (1, 2.02, 1300), assuming USDT/USDC = 1.01 and USDT/ETH = 1300.
 
     - **Transformation $USDT^{-1}$**
 
-        $USDT^{-1}$ transforms a USDT-denominated asset vector to Tokens-denominated vector, by multiplying them with relevant USDT prices.
+        $USDT^{-1}$ transforms a USDT-denominated asset vector to tokens-denominated vector, by multiplying them with relevant USDT prices.
 
-        Example: $USDT^{-1}$ transforms (1, 2.02, 1300) to (1, 2, 3), assuming UserTokens = (USDT, USDC, ETH) and USDT/USDC = 1.01 and USDT/ETH = 1300.
+        Example: $USDT^{-1}$ transforms (1, 2.02, 1300) to (1 USDT, 2 USDC, 3 ETH), assuming USDT/USDC = 1.01 and USDT/ETH = 1300.
 
     - **Transformation $FOP$** - the core of the Archimedes algorithm
 
-        $FOP$, standing for Find Optimal Portfolio, finds the **best** USDT-denominated vector of staked assets for a given total USDT amount. In other words, *it finds what amounts of (USDT-denominated) value should be allocated to what staking pools for swap_and_staking, provided that the total (USDT-denominated) value is given*.  **best** is relative and subjective.
+        $FOP$, standing for Find Optimal Portfolio, finds the *best* USDT-denominated vector of staked assets for a given total USDT amount. In other words, *it finds what amounts of (USDT-denominated) value should be allocated to what staking pools, provided that the total (USDT-denominated) value is given*.  **best** is relative and subjective.
 
     - **Transformation $Sum$**
 
-        $ElementWiseSum$ sums up all elements of a vector.
+        $Sum$ sums up all elements of a vector when they are denominated by the same token.
 <br>
 - **Mozaic's asset state**, at transition $t$
 
-    - Asset snapshot just before the transition that takes place at transition $t$:
+    - Asset snapshot at the beginning of the transition $t$:
 
         $MS^t = (Tokens, Deposits^t, - \space Withdrawals^t, Rewards^t, Stakes^t)$
 
@@ -619,7 +657,7 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
         Note the "-" sign only applies to the asset amount of each element of the vector.
 
-    - Asset snapshot just after the transition $t$:
+    - Asset snapshot at the end of the transition $t$:
 
         $MS^{t+} = (Tokens, 0Deposits, - \space 0Withdrawals, 0Rewards, optimal \space Stakes^t)$
 
@@ -641,18 +679,27 @@ The algorithm for Staking planner $MS^t$ is a chain of transformations:
 $optimial \space S^{t} = USDT^{-1} \circ FOP \circ Sum \circ USDT^{+1} (T, \space D^t, \space - \space W^t, \space R^t, \space S^t)$ <br><br>
 
 - $USDT^{+1}$ and $USDT^{-1}$ are obvious, except that we may need systematic methods to find best Dexes and swap paths.
-- FOP is solved analytically, demonstrating about 9% of competitive edge over the public.
-- ElementWiseSum is trivial.
-- $D^t and W^t$ can be retrieved from the booked requests of deposits and withdrawals.
+- $FOP$ is solved analytically, demonstrating about 9% of competitive edge over the public.
+- $Sum$ is trivial.
+- $D^t$ and $W^t$ can be retrieved from the booked requests of deposits and withdrawals.
 - $S^t$ is found when we "Collect reward" pending rewards.
 <br>
 
 
 **The formula essentially does**:
-- collect the quantity numbers of all asset amounts available for the new staking: deposited assets pending staking, less assets to send to withdraw-ers, plus the current staked assets, plus pending rewards,
+- collect the quantity numbers of all asset amounts available for the new staking:
+```
+= the **Staking Stock** (i.e. staked assets plus pending rewards),
++ assets received from deposit users,
+- assets to send to withdrawing users.
+```
+<br>
+
 - transform them to a single USDT value: Total_in_USDT,
-- allocate the Total_in_USDT **optimally** across all staking pools, by using the FOP algorithm, Note: **optimally** is relative and subjective.
+- allocate the Total_in_USDT **optimally** across all staking pools, by using the $FOP$ algorithm, Note: **optimally** is relative and subjective.
 - transform the allocated USDT amounts back to the native tokens on the staking pools.
+- Send the assets to withdrawing users
+- Send mLP tokens to deposit users
 <br><br>
 
 
@@ -773,7 +820,9 @@ Vaults cooperation for staking optimization **does not have to be decentralized*
 - The system will not serve other mix ratios but 1:1, because a ratio is meaning less as $deposits$ and rewards are all mixed and work together with constant compounding.
 
 
-### reference code
+##  10. <a name='referencecode'></a>Reference source code
+
+Below comes reference code that sketches and/or decides the code architecture.
 
 ```
 pragma solidity ^0.8.0;
