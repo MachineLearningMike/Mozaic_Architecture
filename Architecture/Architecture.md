@@ -18,13 +18,13 @@
 	* 2.1. [Vaults as smart contracts](#Vaultsassmartcontracts)
 	* 2.2. [Limited responsibility](#Limitedresponsibility)
 	* 2.3. [Local transportation to/from wallets](#Localtransportationtofromwallets)
-	* 2.4. [Local moves of Staking stock](#LocalmovesofStakingstock)
+	* 2.4. [Local moves of Staking Stock](#LocalmovesofStakingstock)
 * 3. [Omnichain staking](#Omnichainstaking)
 	* 3.1. [Definition](#Definition-1)
 	* 3.2. [Regular asset move plans](#Regularassetmoveplans)
 	* 3.3. [Design decisions](#Designdecisions-1)
 	* 3.4. [Upgrading staking](#Upgradingstaking)
-* 4. [Omnichain LP token](#OmnichainLPtoken)
+* 4. [Omnichain mLP token](#OmnichainLPtoken)
 	* 4.1. [Requirements analysis](#Requirementsanalysis)
 	* 4.2. [Design decisions](#Designdecisions-1)
 * 5. [Logical components layout](#Logicalcomponentslayout)
@@ -75,34 +75,91 @@
 ###  1.1. <a name='Definition'></a>1.1 Definition
 <br>
 
-- **Asset state** is the state of what amounts of what tokens, including LP tokens, on what chains are, at the given moment of time, 
+- **Asset(s)** is any amount of a listed token on a listed chain.
 
-    - deposited and pending staking
-    - staked
-    - rewarded and pending harvesting
-    - staying in system treasuries
-    - pending withdrawal
-    - pending LP payment
+- **System Asset Snapshot**, **system asset/request state**, or simply **asset state**, is the state at a given time and identified by the followings:
+<br><br> 
+    - Note: 
+        - The following code is an architecture of concepts and is not necessarily the implementation code. More work is needed to optimize the code. 
+        - Different fields of the following structures are calculated at different states.
+<br><br>
 
-- **Request state** is the state of what deposit/withdrawal requests are accepted by the system and waiting for final processing, at the given moment of time.
+    - **Deposits**: All deposit requests. 
+        A deposit request can be modeled by:
+    ```
+        struct Deposit {    // sends assets to the system and receives mLP in return
+            address user;       // the user who requests the deposit
+            address token;      // the denominator token of the assets
+            uint    token_chain // the chain that hosts the denominator token
+            uint    amount;     // the amount of the assets in the denominator token
+            uint    amountLP;   // the amount of mLP
+            uint    lp_chain;   // the chain that hosts the mLP token
+            uint    usdt_equ;   // the usdt-equivalent of the asset amount
+        }
+    ```
+    - **Withdrawals**: All withdrawal requests. A withdrawal request can be modeled by:
+    ```
+        struct Withdraw {   // sends mLP to the system and receives assets in return
+            address user;       // the user who requests the withdrawal
+            address token;      // the denominator token of the assets
+            uint    token_chain // the chain that hosts the denominator token
+            uint    amount;     // the amount of the assets in the denominator token
+            uint    amountLP;   // the amount of mLP
+            uint    lp_chain;   // the chain that hosts the mLP token
+            uint    usdt_equ;   // the usdt-equivalent of the asset amount
+        }
+    ```
+
+    - **Stakes**: All staked chunks. A staked chunk can be modeled by:
+    ```
+        struct Stake {   // a stake of asset is staked on a pool
+            address token;      // the denominator token of the assets
+            uint    token_chain // the chain that hosts the denominator token
+            uint    amount;     // the asset amount in the denominator token
+            uint    pool_id;    // the local/global pool ID
+            uint    usdt_equ;   // the usdt-equivalent of the asset amount
+        }
+    ```
+
+    - **Rewards**: All reward chunks. A reward chunk can be modeled by:
+    ```
+        struct Reward {   // a reward of asset is pending collecting on a pool
+            address token;      // the denominator token of the assets
+            uint    token_chain // the chain that hosts the denominator token
+            uint    amount;     // the asset amount in the denominator token
+            uint    pool_id;    // the local/global pool ID
+            uint    usdt_equ;   // the usdt-equivalent of the asset amount
+        }
+    ```
+
+    - **Treasury**: Assets reserved for system operation, development, and management. Treasury consists of TreasuryItems.
+    ```
+        struct TreasuryItem {
+            address token;      // the denominator token of the assets
+            uint    token_chain // the chain that hosts the denominator token
+            uint    amount;     // the amount of the assets in the denominator token
+            uint    source;     // the source of treasury item, like performance fee, etc.
+            uint    usdt_equ;   // the usdt-equivalent of the asset amount
+        }
+    ```
 
 - If the system does **Optimize asset/request state**, it changes the states to earn optimal staking reward.
 <br><br>
 
 ###  1.2. <a name='Designdecisions'></a>Design decisions
 
-We choose the Sleeping-then_Optimizing model for the overall system behavior. 
+We choose the **Stay-then_Transition** model for the overall system behavior. 
 - The system will not always be optimizing, but sleeping most of the time accepting deposit/withdrawal requests from users.
 - If the system **accept**s a deposit request, it 
     - collects the asset the user wants to deposit, (on the asset's chain)
-    - tells the user to wait until the next optimization round, when the system will send LP tokens to the user in return for the asset,
+    - tells the user to wait until the next optimization round, when the system will send mLP tokens to the user in return for the asset,
     - and book the request with the system for later processing.
 - If the system **accept**s a withdraw request, it
-    - collects the LP tokens the user wants to return, (on the LP's chain)
+    - collects the mLP tokens the user wants to return, (on the mLP's chain)
     - tells the user to wait until the next optimization round, when the system will send some asset of the requested token type,
     - and book the request with the system for later processing.
-- The system will **optimize asset/request state** at regular or irregular intervals. The frequency of optimization rounds will be optimized, as frequent moves of asset may incur more costs while infrequent optimization rounds will hinder from quick maneuver of staking.
-- When entering the **Optimization process**, or the **Optimizing** state, the system will take a snapshot of the asset/request state. Then the system transforms/changes the states to optimal states for maximum reward, while continuing to **accept** deposit/withdrawal requests, which will be handled at the next round of optimization.
+- The system will **optimize system asset snapshot** at regular or irregular intervals. The frequency of optimization rounds will be optimized, as frequent moves of asset may incur more costs while infrequent optimization rounds will hinder from quick maneuver of staking.
+- When entering the **Optimization process**, or the **Optimizing** state, the system will take a **system asset snapshot**. Then the system transforms/changes the states to optimal states for more rewards, while continuing to **accept** deposit/withdrawal requests, which will be handled at the next round of optimization.
 <br><br>
 
 ###  1.3. <a name='Visualdescription'></a>Visual description
@@ -130,25 +187,31 @@ According to the requirements, vaults are responsible to, exclusively and at the
 - log all changes to asset/request state.
 <br>
 
-The only way is to deploy smart contracts on chains that cooperate with each other to form an abstract vault module. We call them vaults or vault contracts.
+The only way is to deploy smart contracts on chains that cooperate with each other to form an omnichain vault module. We call them vaults or vault contracts.
 <br><br>
 
 ###  2.2. <a name='Limitedresponsibility'></a>Limited responsibility
 
 According to the requirements, vaults do *not* have to 
-- find an optimal asset state to **Optimize asset/request state** to
+- find the *best possible* asset state to **Optimize asset/request state** to
 - execute asset move requests, like transitionPlan identified in requirements, strictly, because there will not be negative profit.
 <br><br>
 
-###  2.3. <a name='Localtransportationtofromwallets'></a>Local transportation to/from wallets
-- Pull asset from the user if a deposit involves a local token of asset to collect
-- Push LP to the user if a deposit involves the local LP token to return
-- Pull LP tokens from the user if a withdrawal involves the local LP token to collect
-- Push asset to the user if a withdrawal involves a local token of asset to return
+###  2.3. <a name='Localtransportationtofromwallets'></a>Local, home transportation to/from wallets
+
+- Pull assets from the user if a deposit request involves a home token
+- Export a deposit request if it involves an away mLP token
+- Import an exported deposit request if it involves a home mLP token
+- Push mLP tokens to the user if a deposit request involves the home mLP 
+
+- Pull mLP to the user if a withdrawal request involves the home mLP token
+- Export a withdrawal request if it involves an away token
+- Import an exported withdrawal request if it involves a home token
+- Push asset to the user if a withdrawal request involves a home token
 - Swap at local Dex pools
 <br><br>
 
-###  2.4. <a name='LocalmovesofStakingstock'></a>Local moves of Staking stock
+###  2.4. <a name='LocalmovesofStakingstock'></a>Local moves of Staking Stock
 - Stake assets to local staking pools
 - Un-stake whole or partial assets from local staking pools
 - Collect rewards from local staking pools
@@ -173,30 +236,34 @@ Omnichain staking requires that:
 **For a given chain, we define the followings:**
 <br>
 
-$ChainAssetPlaces = \{ChainVaultWallet\} \cup ChainStakingPools \cup ChainWithdrawalWallets$
+$ChainAssetPlaces = \{ChainVaultWallet\} \cup ChainStakingPools \cup ChainDepositWallets \cup ChainWithdrawalWallets$
 
 - $ChainVaultWallet$: the vault's wallet on the given chain. They have 
-    - deposited assets that are pending staking
+    - **Deposits** assets that are pending staking
 - $ChainStakingPools$: all staking pools on the given chain. They have
-    - staked assets
-    - pending rewards
-- $ChainWithdrawalWallets$: wallets of all users whose withdrawal requests are booked and who will receive withdrawal assets on the given chain. They have
-    - negative undefined asset to send to the users - the system has to calculate the amount based on the LP token amount redeemed from the user.
+    - **Stakes** assets
+    - **Rewards** pending collecting
+- $ChainDepositWallets$: wallets of all users whose deposit requests are booked and who will receive mLP tokens on the given chain. They are linked to
+    - positive defined/undefined mLP amount to send to the users - the system has to calculate the amount based on the mLP token amount redeemed from the user.
+- $ChainWithdrawalWallets$: wallets of all users whose withdrawal requests are booked and who will receive withdrawal assets on the given chain. They are linked to
+    - negative defined/undefined asset to send to the users - the system has to calculate the amount based on the mLP token amount redeemed from the user.
 <br><br>
 
 $AllVaultWallets$: the set of $ChainVaultWallet$ of all listed chains.
 
 $AllStakingPools$: the sum of $ChainStakingPools$ of all listed chains.
 
+$AllDepositWallets$: the sum of $ChainDepositWallets$ of all listed chains.
+
 $AllWithdrawalWallets$: the sum of $ChainWithdrawalWallets$ of all listed chains.
 <br><br>
-$AllAssetPlaces = AllVaultWallets \cup AllStakingPools \cup AllWithdrawalWallets$
+$AllAssetPlaces = AllVaultWallets \cup AllStakingPools \cup AllDepositWallets \cup AllWithdrawalWallets$
 <br><br>
 We know an asset move is the move of asset, whether it changes the token type or not, between any two of $AllAssetPlaces$.
 <br><br>
 
 We classify asset moves into the following two groups:
-- **Inter-Chain Moves** of a given chain: asset moves that take place between any two of $Chian Asset Place$ of the given chain
+- **Inter-Chain Moves** of a given chain: asset moves that take place between any two of $Chian Asset Placse$ of the given chain
 - **Intra-Chain Moves**: asset moves that take place between one of a chain's $Chain Asset Places$ and another of another chain's $Chain Asset Places$
 <br>
 
@@ -207,9 +274,9 @@ We classify asset moves into the following two groups:
 An asset move plan is a set of elementary asset move instructions. We need to eliminate redundant value flows from asset move plans to save the cost of executing the plan.
 <br> 
 
-A regular asset move plan as a plan that has no redundant value flows. **For any asset move plan, there exists a regular equivalent of the original plan. It should be unique and easy to find.**
+A regular asset move plan as a plan that has no redundant value flows. **For any asset move plan, there exists a regular equivalent of the original plan. It should be unique(?) and easy to find.**
 
-Below comes two example of asset move plan: an irregular plan and its regular equivalet:
+Below comes two example of asset move plan: an irregular plan and its regular equivalent:
 
 <p align="center">
   <img src=".\Irregular asset moves.PNG" width="1280" title="high-level use cases" style="page-break-after: avoid;">
@@ -224,22 +291,26 @@ Below comes two example of asset move plan: an irregular plan and its regular eq
 ###  3.3. <a name='Designdecisions-1'></a>Design decisions
 <br>
 
-We deduce the following design decisions:
-- Asst moves will be regularized. We believe regularization will reduce the total cost of asset moves and the number of inter-chain swap/transfers.
-- We believe that ChainWallet will be the best place for regular **Inter-Chain Moves**. It means **Inter-Chain Moves** will be between ChainWallets.
+**We deduce the following design decisions:**
+<br>
+- Asset moves will be **regularized**. We believe regularization will reduce the total cost of asset moves and the number of inter-chain swap/transfers.
+- **ChainValutWallet** will be the hub for regular **Inter-Chain Moves**. This means an **Intra-Chain Move** will be between the **ChainValutWallet** and another of **ChainAssetPlaces**. We wil *not* allow direct asset moves between **ChainAssetPlaces** that are not **ChainVaultWallet**.
 - We need one special vault that oversees the cooperation between vaults, including itself, at decentralization level.
     - **Master vault**: the special vault
     - **Master chain**: the chain that hosts the master vault
+- The **Master vault** will be the hub for regular **Intra-Chain Moves**. This means an **Inter-Chain Move** will between the **Master vault** and another of local vaults. We wil *not* allow direct asset moves between **ChainAssetPlaces** of different chains.
 <br><br>
 
-###  3.4. <a name='Upgradingstaking'></a>Upgrading staking
+###  3.4. <a name='Upgradingstaking'></a>Transitioning staking
 <br>
-This algorithm will be implemented off-chain, because
+This algorithm will be executed off-chain to produce a transition plan, because
 
 <br>
-- it will save gas fees
+- it will save huge gas fees that the algorithm would spend if it ran on-chain
 - the requirements don't require decentralization-level of asset move planning
 <br>
+
+**Note**: The off-chain execution of this algorithm raises the concerns of decentralization.
 
 **This algorithm handles assets**:
 - in their USDC-equivalent on the chain, rather than in their own token, when working intra-chain
@@ -251,95 +322,91 @@ This algorithm will be implemented off-chain, because
 <br>
 
 - Input: Target staking portfolio. (See the coming sections for optimal staking portfolio)
-- Classify asset places into giving places and taking places
-    - If the current asset amount is significantly greater than the target asset amount, it is a giving asset place
-    - If the current asset amount is significantly less than the target asset amount, it is a giving asset place
-    - Else, it is a neutral asset place
-    - An asset place has
-        - a positive giving amount if it is a giving asset place, else zero
-        - a positive taking amount if it is a taking asset place, else zero
-        - a zero giving amount and a zero taking amount if it is a neutral asset place.
-- Classify chains into giving chains and taking chains
-    - If the sum of giving amount of all ChainAsstPlaces is significantly greater than the sum of taking amount, it is a giving chain
-    - If the sum of giving amount of all ChainAsstPlaces is significantly less than the sum of taking amount, it is a giving chain
-    - Else, it is a neutral chian
-    - A chain has
-        - a positive giving amount if it is a giving chain, else zero
-        - a positive giving amount if it is a taking chain, else zero
-        - a zero giving amount and a zero taking amount if it is a neutral chain
-- Generate a regular inter-chain asset move plan, AesseMovePlan, for giving chains
-    - Collect the local swap prices and fees
-    - Sum up surplus asset, which is the target asset less the current asset, of giving asset places to a variable
-    - Make a distribution plan that divides the sum of surplus asset to taking asset places
-    - Do not care of dust deficit amount. (Leave it to vaults' tunning operation)
-    - Now, an irregular asset move plan has been created
-    - Regularize the plan, by using graph theories and ad-hoc techniques
-    - Conclude with the surplus assets amount of this giving chain
-    - **Be aware that the asset move plan is actually asset send plan that doesn't care of price slippage and fees**
-    - **Be aware that this plan does/can not take into account the actual price slippage and fees**
-- Transfer surplus assets on giving chains to taking chains
-    - Sum up surplus assets of giving chains to a variable
-    - Make a distribution plan that divides the sum of surplus assets to taking chains
-    - Do not care of dust deficit amount. (Leave it to vaults' tunning operation)
-    - Now, an irregular asset move plan has been created
-    - Regularize the plan, by using graph theories and ad-hoc techniques
-    - **Be aware that the asset move plan is actually asset send plan that doesn't care of price slippage and fees**
-    - **Be aware that this plan does/can not take into account the actual price slippage and fees**
-- Generate a regular inter-chain asset move plan, AeetMovePlan, for taking chains
-    (the same as for giving chains)
-
+- Output: A transition plan to the input staking portfolio
+- Process:
+    - Classify asset places into giving places and taking places
+        - If the current asset amount is significantly greater than the target asset amount, it is a **giving asset place**
+        - If the current asset amount is significantly less than the target asset amount, it is a **taking asset place**
+            - **ChainWithdrawalWallets** are mandatory taking places, however small mLP to send
+            - **ChainDepositWallets** are mandatory taking places, however small assets to send
+        - Else, it is a neutral asset place
+        - An asset place has
+            - a positive **giving amount** if it is a giving asset place, else zero
+            - a positive **taking amount** if it is a taking asset place, else zero
+            - a zero giving amount and a zero taking amount if it is a neutral asset place.
+    - Classify chains into giving chains and taking chains
+        - If the sum of giving amount of all ChainAsstPlaces is significantly greater than the sum of taking amount, it is a **giving chain**, and the difference is called the **surplus** assets of the giving chain.
+            - Be careful not to harm deposits/withdrawals
+        - If the sum of giving amount of all ChainAsstPlaces is significantly less than the sum of taking amount, it is a **taking chain** and the **deficit assets** is defined for the taking chain.
+            - Be careful not to harm deposits/withdrawals
+        - Else, it is a neutral chian
+        - A chain has
+            - a positive giving amount if it is a giving chain, else zero
+            - a positive giving amount if it is a taking chain, else zero
+            - a zero giving amount and a zero taking amount if it is a neutral chain
+    - Generate a regular intra-chain asset move plan, AssetMovePlan, for giving chains
+        - Collect the local swap prices and fees
+        - Make a distribution plan that divides the sum of giving amounts of giving asset places, into taking amounts of taking asset places. Be careful with dusts
+        - Regularize the plan by using the vault as a hub. (See previous sections)
+        - Conclude with the surplus assets of this giving chain. It should be a positive amount.
+        - **Be aware that the asset move plan is actually asset send plan that doesn't care of price slippage and fees**
+        - **Be aware that this plan does/can not take into account the actual price slippage and fees**
+    - Execute regular intra-chain asset move plans for giving chains.
+    - Transfer surplus assets on giving chains to taking chains
+        - Sum up surplus assets of giving chains to the master vault
+        - Make a distribution plan that divides the sum of surplus assets to taking chains
+        - Do not care of dust deficit amount. (Leave it to vaults' tunning operation)
+        - Now, an irregular asset move plan has been created
+        - Regularize the plan, by using graph theories and ad-hoc techniques
+        - **Be aware that the asset move plan is actually asset send plan that doesn't care of price slippage and fees**
+        - **Be aware that this plan does/can not take into account the actual price slippage and fees**
+    - Generate a regular intra-chain asset move plan for taking chains
+        (the same as for giving chains)
+    - Execute regular intra-chain asset move plans for taking chains.
 
 
 <div style="page-break-after: auto;"></div>
 <br><br>
 
-##  4. <a name='OmnichainLPtoken'></a>Omnichain LP token
+##  4. <a name='OmnichainLPtoken'></a>Omnichain mLP token
 <br>
 
 ###  4.1. <a name='Requirementsanalysis'></a>Requirements analysis
 <br>
-Omnichain LP requires that:
+Omnichain mLP requires that:
 
-- The LP token should exist on all listed chains.
-- All LP token versions should always have the save value.
-- When the system **stake**s assets that a user **deposit**ed, the system returns LP tokens to the user. The amount of the returned LP token should represent the newly staked asset in the **Staking stock** immediately after the asset is staked.
-- A user can **withdraw** assets from the **Staking stock**, in any listed token format on any listed chain, by first returning LP tokens from their wallet to the system wallet.
-- The amount of asset that is **withdraw**n is the portion of **Staking stock** that is represented by the returned LP tokens immediately before the asset is **withdraw**n.
+- The mLP token should exist on all listed chains.
+- All mLP tokens should always have the same global price.
+    - When the system **stake**s assets that a user **deposit**ed, the system returns mLP tokens to the user. The amount of the returned mLP token should represent the newly staked asset in the **Staking Stock** immediately after the asset is staked.
+    - A user can **withdraw** assets from the **Staking Stock**, in any listed token format on any listed chain, by first returning mLP tokens from their wallet to the system wallet. The amount of asset that is **withdraw**n is the portion of **Staking Stock** that is represented by the returned mLP tokens immediately before the asset is **withdraw**n.
 <br><br>
 
-Additional optional use cases of LP token may include:
+Additional optional use cases the mLP token may have:
 
-- The LP token can be rebased
-- The LP token cannot be rebased and the supply is capped
-- The LP token can be staked
-- The LP token can be promoted with farming
-- LP tokens will open the possibility of becoming an algorithmic stable token by rebasing itself based on oracle price feeds.
+- The mLP token cannot have initial supply
+- The mLP token can be rebased
 
 <br>
 
 ###  4.2. <a name='Designdecisions-1'></a>Design decisions
 <br>
 
-LP token contracts should be simple and can/should be highly decentralized.
+mLP token contracts should be simple and can/should be highly decentralized.
 <br>
 
-- A LP token contract will be deployed on each listed chain
-- All LP token contracts will have the same functionality
-    - there will not be master-slave or main-secondary relationship
-    - this is to make LPs and chains as equal as possible
-- LP token contracts will be independent of vaults, except that local vaults should be able to mint and burn local LP tokens 
-    - LP token contracts will know be aware of vault contracts
-    - LP tokens will be able to continue to work while vaults are in maintenance mode or being upgraded
-- LP token contracts will be independent of administration
-    - LP tokens will be completely free from administration or DAO 
-    - LP tokens will not be upgradeable, for example
-- LP tokens will be inter-chain swapped 1:1 at the level of decentralization
-    - LZ or other inter-chain transportation service will be used 
+- mLP token contracts will be independent of vaults, except that local vaults should be able to mint and burn local mLP tokens 
+    - mLP token contracts will be aware of vault contracts
+    - mLP tokens will be able to continue to work while vaults are in maintenance mode or being upgraded
+- mLP token contracts will be independent of administration
+    - mLP tokens will be completely free from administration or DAO 
+    - mLP tokens will not be upgradeable, for example
+- mLP tokens will be inter-chain swapped 1:1 at the level of decentralization
+    - LayerZero service will be used
     - (**What if the LZ service gets down?** Make it changeable?)
     - Mint-burn, not lock-release, mechanism will be used
-- LP token swap will be either completely successful or completely reverted on both the source chain and the destination chain
+- mLP token swap will be either completely successful or completely reverted on both the source chain and the destination chain
     - It will employ the same technique as Stargate's swap, **if we find no alternatives**.
-- **LP tokens will be promoted with farming**
+- **mLP tokens will be promoted with farming**
     - Farming will emit, as reward, portion of the systems profit share
     - This will incentivize more staking
     - Farming will be controlled by administration (Starget's decision models is interesting)
@@ -348,7 +415,7 @@ LP token contracts should be simple and can/should be highly decentralized.
 <div style="page-break-after: always;"></div>
 <br><br>
 
-##  5. <a name='Logicalcomponentslayout'></a>Logical components layout
+##  5. <a name='Logicalcomponentslayout'></a>Logical components
 <br>
 
 The overall architectural requiement for vault was/is to **minimize vault as much as possible** leaving most compute to off-chain modules.
@@ -361,8 +428,8 @@ The design decisions are as illustrated in the following figure:
 
 Functional modules are described below:
 - **Secondary vault contract**: This module is a smart contract and deployed on each chain except the home chain. It participates in the cooperation with its peer **Secondary vault contract**s to implement **Control asset move**, This module has at least the following private operations that work locally on its chain: collect_reward(...) and move_staking_asset(...)
-- **Master vault contract**: This module is a smart contract, has global operations, in addition to the local operations inherited from **Secondary vault contract**, and is deployed on one and only one of the chains, called **Master chain**, where it takes the role of **Secondary vault contract**, as well as the the unique role of the master vault operating **LP token contract**.
-- **LP token contract**: This module manages the LP token balances of **User**s, which represents their proportional share of the total assets of the system.
+- **Master vault contract**: This module is a smart contract, has global operations, in addition to the local operations inherited from **Secondary vault contract**, and is deployed on one and only one of the chains, called **Master chain**, where it takes the role of **Secondary vault contract**, as well as the the unique role of the master vault operating **mLP token contract**.
+- **mLP token contract**: This module manages the mLP token balances of **User**s, which represents their proportional share of the **Staking Stock**.
 - **User wallet**: This is a blockchain wallet and identifies a **User**. **User**'s actions; like deposit, withdraw, and harvest; are authenticated/authorized with this wallet.
 - **Vault account**: It is the blockchain account of, and controlled by, **Secondary vault contract** and used to store temporary assets, like funds pending staking.
 - **Treasury wallet**: This is a blockchain wallet, and a place to store and retrieve system revenues, like fees. It will be better if it is not owned by a human, but be the account of a smart contract that only obeys vault contracts, for better decentralization. It is deployed on all chains.
@@ -381,7 +448,7 @@ Functional modules are described below:
 - **Transition planner**: An integral component of **Staking optimizer**, this module predicts the most efficient **transitionPlan**, which is the best procedure of asset move that implements the transitioning to a given **staking_portfolio**, based on the current **poolsState**.
 - **Trading optimizer**: This is similar to **Staking optimizer**, except that it relates to trading.
 - **Trading planner**: This is similar to **Staking planner**, except that it relates to trading.
-- **Pools tracker**: A shared module between **Staking optimizer** and **Trading optimizer**, this module retrieves and tracks all relevant information from chains, like Reward Release Speed, and total Staked LP of each pool. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fees and effectively disable the system.
+- **Pools tracker**: A shared module between **Staking optimizer** and **Trading optimizer**, this module retrieves and tracks all relevant information from chains, like Reward Release Speed, and total Staked mLP of each pool. Running this module on-chain would enhance transparency, but would at the same time incur huge gas fees and effectively disable the system.
 
 <br>
 
@@ -410,19 +477,19 @@ The external actors in the following use case diagram, together with their inter
 - **Finish deposit**: This use case 
     - resume the session of "_Deposit",
     - retrieves the booked deposit request, 
-    - mints LP tokens to cover the new fund, 
-    - returns the LP tokens to **User wallet**,
+    - mints mLP tokens to cover the new fund, 
+    - returns the mLP tokens to **User wallet**,
     - and helps **Control staking transition** stake the fund.
-- **_Withdraw**: This is what happens at the level of vault contracts when the **Withdraw** use case is invoked at the system level. Invoked by **User wallet** with LP tokens returned, this used case coordinates the following two use cases.
+- **_Withdraw**: This is what happens at the level of vault contracts when the **Withdraw** use case is invoked at the system level. Invoked by **User wallet** with mLP tokens returned, this used case coordinates the following two use cases.
 - **Book withdraw**: This use case 
-    - collects the returned LP tokens,
-    - burns the collected LP tokens,
+    - collects the returned mLP tokens,
+    - burns the collected mLP tokens,
     - books the withdrawal request with the system,
     - and pauses the session of "_Deposit".
 - **Finish deposit**: This use case 
     - resume the session of "_Deposit",
     - retrieves the books withdrawal request,
-    - subtract fund, as much as covered by the returned LP tokens, from the total system assets, and
+    - subtract fund, as much as covered by the returned mLP tokens, from the total system assets, and
     - returns the fund to **User wallet**
 - **Control staking transition**: This use case transitions to a new asset state by executing **transitionPlan** provided by **Staking optimizer**. (This is the most challenging part of vault implementation.) It does *collectively*, by using **Move staking asset**,
     - **Collect reward**,
@@ -509,11 +576,11 @@ Note. All errors, like numerical processing rounding and price slippage, are ign
 
     - **Vector of booked deposit requests**, at transition index $t$
     
-        $Deposits^t = \{ (D_i^t, \space dLP_i^t) \space | \space D_i^t: deposit \space amount \space denominated \space by \space UserToken_i, \space dLP_i^t: \space LP \space amount, \space all \space at \space transition \space t, . i=1..M \}$
+        $Deposits^t = \{ (D_i^t, \space dLP_i^t) \space | \space D_i^t: deposit \space amount \space denominated \space by \space UserToken_i, \space dLP_i^t: \space mLP \space amount, \space all \space at \space transition \space t, . i=1..M \}$
 
     - **Vector of booked withdrawals requests**, at time index $t$
 
-        $Withdrawals^t = \{ (W_i^t, \space wLP_i^t) \space | \space D_i^t: withdrawal \space amount \space denominated \space by \space UserToken_i, \space wLP_i^t: \space LP \space amount, \space all \space at \space transition \space t,  . i=1..M \}$
+        $Withdrawals^t = \{ (W_i^t, \space wLP_i^t) \space | \space D_i^t: withdrawal \space amount \space denominated \space by \space UserToken_i, \space wLP_i^t: \space mLP \space amount, \space all \space at \space transition \space t,  . i=1..M \}$
 
     - **Vector of collected rewards**, at transition index $t$
 
@@ -607,21 +674,22 @@ $optimial \space S^{t} = USDT^{-1} \circ FOP \circ Sum \circ USDT^{+1} (T, \spac
 - Layer Zero is the de facto industry standard of decentralized inter-chain transportation service
 
 ###  8.2. <a name='Decentralizedoperationsrequired'></a> Decentralized operations required
-Some vault operations should be decentralized to meet the requirements. Tracking of asset/LP amount should be executed decentrally, without intermediate off-chain agent or relayer, and with transparent loggs
+Some vault operations should be decentralized to meet the requirements. Tracking of asset/mLP amount should be executed decentrally, without intermediate off-chain agent or relayer, and with transparent loggs
 - Collecting pending rewards from all staking pools to vaults
 - Withdrawing from and staking to staking pools to/from vault
-- Query for local amounts of assset and LP token
-- Cooperation between vaults to calculate and exchange the information of asset/LP amounts and indexes derived therefrom
+- Query for local amounts of assset and mLP token
+- Cooperation between vaults to calculate and exchange the information of asset/mLP amounts and indexes derived therefrom
 - Sending assets from users' wallets to vaults, on users' deposit requests
-- Calculating LP amount to send to users, in return for their deposited assets
-- Sending LP tokens from vaults to users' wallets, on users' deposit requests
-- Sending LP from users' wallets to vaults, on users' withdrawal requests
-- Calculating asset amount to send to users, in return for their returned LP tokens
+- Calculating mLP amount to send to users, in return for their deposited assets
+- Sending mLP tokens from vaults to users' wallets, on users' deposit requests
+- Sending mLP from users' wallets to vaults, on users' withdrawal requests
+- Calculating asset amount to send to users, in return for their returned mLP tokens
 - Sending assets from vaults to users' wallets, on users' withdrawal requests
 <br><br>
 
 ###  8.3. <a name='EmploytheLayerZeroservice'></a>Employ the LayerZero service
 
+Transparent cross-chain transportation is the fundamental basis of omnichain operations. We choose LayerZero service for our cross-chain transportation.
 
 <p align="center">
   <img src=".\Mozaic and LayerZero.PNG" width="1280" title="vault use cases" style="page-break-before: avoid;">
@@ -687,7 +755,7 @@ Vaults cooperation for staking optimization **does not have to be decentralized*
 - Gas is spent chain-wise, although the profit generation is not necessarily chain-wise
 
 ####  9.3.2. <a name='Designrecommendations-1'></a>Design recommendations
-- The initial version will be sourcing local gas fees from the local Staking stock. **If the local Staking stock is not sufficient for gas fees, the chain will be set inactive**.
+- The initial version will be sourcing local gas fees from the local Staking Stock. **If the local Staking Stock is not sufficient for gas fees, the chain will be set inactive**.
 - Future versions will maintain a distributed treasure manager to provide local gas spending.
 
 ###  9.4. <a name='Auxiliarydescriptionsofthearchitecture'></a>Auxiliary descriptions of the architecture
@@ -697,9 +765,9 @@ Vaults cooperation for staking optimization **does not have to be decentralized*
 - Alice's $deposits$ is now 170 stable coins.
 - Alice deposits 30 stable coins,
     - Her $deposits$ increases by 30 to become 200.
-    - Her total LP token increases by some amount of LP token that is calculated to be the share of 30 in the system's resulting renewed Staking stock.
-- When she wants to withdraw with 20 LP tokens
-    - We first find she has a total 100 LP tokens
+    - Her total mLP token increases by some amount of mLP token that is calculated to be the share of 30 in the system's resulting renewed Staking Stock.
+- When she wants to withdraw with 20 mLP tokens
+    - We first find she has a total 100 mLP tokens
     - Decrease her $deposits$ by 200 * 20 / 100 = 40 stable coins
     - Return the withdrawal assets to her, say 120 stable coins, which is a mix of deposits and rewards
     - We know she withdraws 40 principal deposit, together with 120 - 40 = 80 rewards
@@ -707,4 +775,144 @@ Vaults cooperation for staking optimization **does not have to be decentralized*
 - This means the withdrawal amount is forced to be a 1:1, which is not numerical but proportional, mix of original/principal deposits and rewards generated by staking/compounding them.
 - The system will not serve other mix ratios but 1:1, because a ratio is meaning less as $deposits$ and rewards are all mixed and work together with constant compounding.
 
+
+### reference code
+
+```
+pragma solidity ^0.8.0;
+
+// imports
+import "../libraries/lzApp/NonblockingLzApp.sol";
+import "../libraries/stargate/Router.sol";
+import "../libraries/stargate/Pool.sol";
+import "./OrderTaker.sol";
+import "./MozaicLP.sol";
+
+// libraries
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+
+abstract contract SecondaryVault is OrderTaker, NonblockingLzApp {
+    function _usdt(address _token, uint _amount) internal returns (uint usdtEq) {
+        // use whatever source of price to get usdt-equivalent of 
+        // the _amount amount of _token token.
+    }
+
+    mapping(address => uint) public userTokens;
+
+    function addUserToken(address _token) external {
+        require( _token != address(0), "");
+        userTokens[_token] = 1;
+    }
+    function removeUserToken(address _token) external {
+        require( _token != address(0), "");
+        userTokens[_token] = 0;
+    }
+
+    struct Deposit {
+        address user;
+        address token;
+        uint    amount;
+        uint    amountLP;   // undefined initially
+    }
+
+    struct DepositImported {
+        address user;
+        uint    usdtEq;
+        uint    amountLP;   // undefined initially
+    }
+
+    struct DepositToExport {
+        address user;
+        uint    usdtEq;
+        uint    chainId;
+    }
+
+    struct Withdrawal {
+        address user;
+        address token;
+        uint    amount;    // undefined initially
+        uint    amountLP;
+    }
+
+    struct WithdrawalImported {
+        address user;
+        address token;
+        uint    amount;    // undefined initially
+        uint    amountLP;
+    }
+
+    struct WithdrawalToExport {
+        address user;
+        address token;
+        uint    amountLP;
+        uint    chainId;
+    }
+
+    struct Workspace {
+        Deposit[] ds;
+        DepositToExport[] dsToExport;
+        DepositImported[] dsImported;
+        Withdrawal[] ws;
+        WithdrawalToExport[] wsToExport;
+        WithdrawalImported[] wsImported;
+    }
+
+    Workspace private left;
+    Workspace private right;
+    bool public transitioning;  // bool has 8 bits. Can put more to fill 256 bits.
+
+    function _getPendingWorkspace() internal view returns (Workspace storage) {
+        if (transitioning) {
+            return left;
+        } else {
+            return right;
+        }
+    }
+
+    function _getStagedWorkspace() internal view returns (Workspace storage) {
+        if (transitioning) {
+            return right;
+        } else {
+            return left;
+        }
+    }
+
+    uint public thisChain;
+
+    // The caller submits _amount of _token, and wants MLP tokens on _chain.
+    function addDepositRequest(address _token, uint _amount, uint _chain) external  {
+        require(userTokens[_token] != 0 && _amount > 0, "Wrong token/amount");       
+        _safeTransferFrom(_token, msg.sender, address(this), _amount);
+        
+        Workspace storage pending = _getPendingWorkspace();
+        if (_chain == thisChain) { // The request is local-token for local-mLP
+            pending.ds.push( Deposit(msg.sender, _token, _amount, 0) );
+            // 0 for mLP amount to send to the user.
+        } else { // The request is local-token for away-mLP
+            pending.dsToExport.push(DepositToExport(msg.sender, _usdt(_token, _amount), _chain));
+            // Foreign chain _chain will store this like: 
+            // pending.dsImported.push(DepositImported(msg.sender, usdtEq, 0));
+            // 0 for the undefined mLP amount to send to the user
+        }
+    }
+
+    // The caller submits _amount of mLP, and wants _token tokens on _chain chain.
+    function addWithdrawalRequest(uint _amountLP, address _token, uint _chain) external  {
+        require(userTokens[_token] != 0 && _amountLP > 0, "Wrong token/amount");       
+        _safeTransferFrom(mLP, msg.sender, address(this), _amountLP);
+        
+        Workspace storage pending = _getPendingWorkspace();
+        if (_chain == thisChain) { // The request is local-LP for local-token
+            pending.ws.push( Withdrawal(msg.sender, _token, 0, _amountLP) );
+            // 0 for the undefined amount of token to send to the user.
+        } else { // The request is local-LP for away-token
+            pending.wsToExport.push(WithdrawalToExport(msg.sender, _token, _amountLP, _chain));
+            // Foreign chain _chain will store this like:
+            // pending.wsImported.push(WithdrawalImported(msg.sender, _token, 0, _amountLP));
+            // 0 for the undefined amount of token to send to the user
+        }
+    }
+}
+```
 
