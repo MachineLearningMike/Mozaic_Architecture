@@ -237,6 +237,7 @@ Local vaults are responsible to:
 <div style="page-break-after: auto;"></div>
 
 ##  3. <a name='Omnichainstaking'></a>Omnichain staking
+<br>
 
 ###  3.1. <a name='Definition-1'></a>Definition
 <br>
@@ -248,10 +249,11 @@ Omnichain staking requires that:
 - Rewards collected can be swapped/transferred, and staked in any staking pool on any listed chain, *guided by the system's optimization plan.*
 <br><br>
 
-**For a given chain, we define the followings:**
+**For a given chain, we define the followings**:
 <br>
 
-$ChainAssetPlaces = \{ChainVaultWallet\} \cup ChainStakingPools \cup ChainDepositWallets \cup ChainWithdrawalWallets$
+$ChainAssetPlaces$
+ $\space = \space \{ChainVaultWallet\} \space \cup  \space ChainStakingPools \space \cup \space ChainDepositWallets \space \cup \space ChainWithdrawalWallets$
 
 - $ChainVaultWallet$: the vault's wallet on the given chain. They hold from time to time:
     - **Deposits** assets that are pending staking
