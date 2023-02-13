@@ -344,7 +344,7 @@ This algorithm will be executed off-chain to produce a transition plan, because
 - we hope USDC on all chains will have exactly the same price
 <br>
 
-**Algorithm**
+### Algorithm
 <br>
 
 We define the **asset instances on AssetPlaces** as:
@@ -400,11 +400,10 @@ Note: This definition is helpful because an asset place, like a wallet or contra
 Note: This algorithm should be tweaked to cope with changing price slippages and fees, and numerical dusts, in implementation phases.
 <br>
 
-The algorithm is illustrated below:
-
-<br><br>
+**The algorithm is illustrated below:**
+<br>
 <p align="center">
-  <img src=".\Transition Algorithm.PNG" width="1280" title="high-level functional modules" style="page-break-after: avoid;">
+  <img src=".\Transition algorithm.PNG" width="1280" title="high-level functional modules" style="page-break-after: avoid;">
 </p>
 
 
