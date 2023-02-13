@@ -359,9 +359,9 @@ Note: This definition is helpful because an asset place, like a wallet or contra
     - Confirm that the target staking portfolio specifies the target asset amount on asset instances.
     - Classify asset instances in $AllAssetPlaces^i$ into giving instances and taking instances
         - If the current asset amount is significantly greater than the target asset amount, it is a **giving asset instance**
-            - **ChainDepositWallets^i** are all giving asset instances
+            - All of **ChainDepositWallets^i** are all giving asset instances
         - If the current asset amount is significantly less than the target asset amount, it is a **taking asset instance**
-            - **ChainWithdrawalWallets^i** are all taking asset instances
+            - All of **ChainWithdrawalWallets^i** are all taking asset instances
         - Else, it is a neutral asset instance
         - An asset instance has
             - a positive **giving amount** if it is a giving asset instance, else zero
@@ -369,9 +369,11 @@ Note: This definition is helpful because an asset place, like a wallet or contra
             - a zero giving amount and a zero taking amount if it is a neutral asset instance.
     - Classify chains into giving chains and taking chains
         - If the sum of giving amount of all asset instances in $ChainAsstPlaces^i$ of a given chain is significantly greater than the sum of taking amount, it is a **giving chain**, and the difference is called the **giving amount** of the giving chain.
+            - **ChainDepositWallets^i** collectively forms a special giving chain.
             - Be careful not to harm deposits/withdrawals
         - If the sum of taking amount of all asset instances in $ChainAsstPlaces^i$ of a given chain is significantly greater than the sum of giving amount, it is a **taking chain** and the difference is called the **taking amount** of the taking chain.
             - Be careful not to harm deposits/withdrawals
+            - **ChainWithdrawalWallets^i** collectively forms a special taking chain.
         - Else, it is a neutral chian
         - A chain has
             - a positive giving amount if it is a giving chain, else zero
@@ -396,6 +398,15 @@ Note: This definition is helpful because an asset place, like a wallet or contra
 <br>
 
 Note: This algorithm should be tweaked to cope with changing price slippages and fees, and numerical dusts, in implementation phases.
+<br>
+
+The algorithm is illustrated below:
+
+<br><br>
+<p align="center">
+  <img src=".\Transition Algorithm.PNG" width="1280" title="high-level functional modules" style="page-break-after: avoid;">
+</p>
+
 
 <div style="page-break-after: auto;"></div>
 <br><br>
