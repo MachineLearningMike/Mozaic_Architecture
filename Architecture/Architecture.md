@@ -38,10 +38,6 @@
 		* 4.5.1. [Considerations](#Considerations)
 		* 4.5.2. [Design decisions](#Designdecisions-1)
 		* 4.5.3. [Reference source code](#Referencesourcecode)
-	* 4.6. [Protocol drivers](#Protocoldrivers)
-		* 4.6.1. [Considerations](#Considerations-1)
-		* 4.6.2. [Design decisions](#Designdecisions-1)
-		* 4.6.3. [Reference source code](#Referencesourcecode-1)
 * 5. [Cross-chain transportation](#Cross-chaintransportation)
 	* 5.1. [Considerations](#Considerations-1)
 	* 5.2. [ Decentralized operations required](#Decentralizedoperationsrequired)
@@ -721,24 +717,6 @@ Note: This algorithm should be tweaked to cope with changing price slippages and
 - Off-chain: Call Staking Planner to generate Optimal Staking Portfolio
 - Off-chain: Call Transition Planner to generate Optimal Transition Plan
 - On-chain: Execute the Optimal Transition Plan
-
-
-###  4.5. <a name='Protocoldriverscheme'></a>Protocol driver scheme
-
-####  4.5.1. <a name='Considerations'></a>Considerations
-
-####  4.5.2. <a name='Designdecisions-1'></a>Design decisions
-
-
-<br>
-
-<p align="center">
-  <img src=".\Driver scheme.PNG" width="1280" title="vault use cases" style="page-break-after: avoid;">
-</p>
-<br>
-
-
-####  4.5.3. <a name='Referencesourcecode'></a>Reference source code
 
 ###  4.6. <a name='Protocoldrivers'></a>Protocol drivers
 
