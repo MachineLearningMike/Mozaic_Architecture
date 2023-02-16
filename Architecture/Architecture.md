@@ -34,7 +34,7 @@
 		* 4.3.4. [Algorithm input and output](#Algorithminputandoutput)
 		* 4.3.5. [Process](#Process)
 	* 4.4. [Optimization rounds](#Optimizationrounds)
-	* 4.5. [Protocol driver scheme](#Protocoldriverscheme)
+	* 4.5. [Protocol drivers](#Protocoldrivers)
 		* 4.5.1. [Considerations](#Considerations)
 		* 4.5.2. [Design decisions](#Designdecisions-1)
 		* 4.5.3. [Reference source code](#Referencesourcecode)
@@ -66,7 +66,7 @@
 	/vscode-markdown-toc-config -->
 <!-- /vscode-markdown-toc -->
 
-<div style="page-break-after: auto;"></div>
+<div style="page-break-after: always;"></div>
 <br><br>
 
 
@@ -718,12 +718,12 @@ Note: This algorithm should be tweaked to cope with changing price slippages and
 - Off-chain: Call Transition Planner to generate Optimal Transition Plan
 - On-chain: Execute the Optimal Transition Plan
 
-###  4.6. <a name='Protocoldrivers'></a>Protocol drivers
+###  4.5. <a name='Protocoldrivers'></a>Protocol drivers
 
-####  4.6.1. <a name='Considerations-1'></a>Considerations
+####  4.5.1. <a name='Considerations'></a>Considerations
 
 
-####  4.6.2. <a name='Designdecisions-1'></a>Design decisions
+####  4.5.2. <a name='Designdecisions-1'></a>Design decisions
 
 <br>
 
@@ -738,7 +738,7 @@ TransitionPlanner will have the correspondent layer structure:
 - Layer1: correspondent of drivers' internal action functions, like _Swap(.), which know action parameter structure.
 
 
-####  4.6.3. <a name='Referencesourcecode-1'></a>Reference source code
+####  4.5.3. <a name='Referencesourcecode'></a>Reference source code
 
 **ProtocolDriver**
 
@@ -1072,16 +1072,33 @@ pragma solidity ^0.8.0;
 import "../libraries/lzApp/NonblockingLzApp.sol";
 import "../libraries/stargate/Router.sol";
 import "../libraries/stargate/Pool.sol";
-import "./OrderTaker.sol";
 import "./MozaicLP.sol";
+import "./ProtocolDriver.sol";
 
 // libraries
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-abstract contract SecondaryVault is OrderTaker, NonblockingLzApp {
-    function _usdt(address _token, uint _amount) internal returns (uint usdtEq) {
-        // use whatever source of price to get usd-equivalent of 
+abstract contract ProtocolDriver is Ownable {
+    address public vault;
+
+    function SetVault(address _vault) external virtual onlyOwner {
+        require(vault != address(0), "Wrong vault address");
+        vault = _vault;
+    }
+
+    modifier delegatedByVault() {
+        require(this == vault, "Wrong vault");  // this: Assuming delegatecall.
+        _;
+    }
+
+    function Execute(bytes calldata action) external virtual delegatedByVault {
+    }
+}
+
+abstract contract SecondaryVault is NonblockingLzApp {
+    function _usdt(address _token, uint _amount) internal returns (uint usdEq) {
+        // use whatever source of price to get usdt-equivalent of 
         // the _amount amount of _token token.
     }
 
@@ -1105,13 +1122,13 @@ abstract contract SecondaryVault is OrderTaker, NonblockingLzApp {
 
     struct DepositImported {
         address user;
-        uint    usdtEq;
+        uint    usdEq;
         uint    amountLP;   // undefined initially
     }
 
     struct DepositToExport {
         address user;
-        uint    usdtEq;
+        uint    usdEq;
         uint    chainId;
     }
 
@@ -1145,41 +1162,50 @@ abstract contract SecondaryVault is OrderTaker, NonblockingLzApp {
         WithdrawalImported[] wsImported;
     }
 
-    Workspace private left;
-    Workspace private right;
-    bool public transitioning;  // bool has 8 bits. Can put more to fill 256 bits.
-
-    function _getPendingWorkspace() internal view returns (Workspace storage) {
-        if (transitioning) {
-            return left;
-        } else {
-            return right;
-        }
-    }
-
-    function _getStagedWorkspace() internal view returns (Workspace storage) {
-        if (transitioning) {
-            return right;
-        } else {
-            return left;
-        }
-    }
+    Workspace private pending;
+    Workspace private staged;
 
     uint public thisChain;
+    address public mLP;
+
+    function _safeTransferFrom(
+        address _token,
+        address _from,
+        address _to,
+        uint256 _value
+    ) private {
+        // bytes4(keccak256(bytes('transferFrom(address,address,uint256)')));
+        (bool success, bytes memory data) = _token.call(abi.encodeWithSelector(0x23b872dd, _from, _to, _value));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "Stargate: TRANSFER_FROM_FAILED");
+    }
+
+    function _clean(Workspace storage ws) internal {
+
+    }
+
+    // This call begins transitioning.
+    function takeSnapshot() external {
+        Workspace storage temp = staged;
+        staged = pending;
+        pending = temp;
+        _clean(pending);
+
+        // do whatever with staged
+
+    }
 
     // The caller submits _amount of _token, and wants MLP tokens on _chain.
     function addDepositRequest(address _token, uint _amount, uint _chain) external  {
         require(userTokens[_token] != 0 && _amount > 0, "Wrong token/amount");       
         _safeTransferFrom(_token, msg.sender, address(this), _amount);
         
-        Workspace storage pending = _getPendingWorkspace();
         if (_chain == thisChain) { // The request is local-token for local-mLP
             pending.ds.push( Deposit(msg.sender, _token, _amount, 0) );
             // 0 for mLP amount to send to the user.
         } else { // The request is local-token for away-mLP
             pending.dsToExport.push(DepositToExport(msg.sender, _usdt(_token, _amount), _chain));
             // Foreign chain _chain will store this like: 
-            // pending.dsImported.push(DepositImported(msg.sender, usdtEq, 0));
+            // pending.dsImported.push(DepositImported(msg.sender, usdEq, 0));
             // 0 for the undefined mLP amount to send to the user
         }
     }
@@ -1189,7 +1215,6 @@ abstract contract SecondaryVault is OrderTaker, NonblockingLzApp {
         require(userTokens[_token] != 0 && _amountLP > 0, "Wrong token/amount");       
         _safeTransferFrom(mLP, msg.sender, address(this), _amountLP);
         
-        Workspace storage pending = _getPendingWorkspace();
         if (_chain == thisChain) { // The request is local-LP for local-token
             pending.ws.push( Withdrawal(msg.sender, _token, 0, _amountLP) );
             // 0 for the undefined amount of token to send to the user.
@@ -1199,6 +1224,47 @@ abstract contract SecondaryVault is OrderTaker, NonblockingLzApp {
             // pending.wsImported.push(WithdrawalImported(msg.sender, _token, 0, _amountLP));
             // 0 for the undefined amount of token to send to the user
         }
+    }
+
+
+
+    mapping (uint => address) public protocolDrivers;
+
+    function ChangeProtocolDriver(uint protocol, address driver) external onlyOwner {
+        protocolDrivers[protocol] = driver;
+    }
+
+    function ExecuteActions(bytes[] calldata protocolActions) external onlyOwner {
+        for (uint i = 0; i < protocolActions.length ; i++) {
+            (uint protocol, bytes memory action) = abi.decode(protocolActions[i], (uint, bytes));
+            (bool success, bytes memory data) = protocolDrivers[protocol]
+            .delegatecall(abi.encodeWithSignature(("Execute(bytes)"), action));
+            require(success, "");
+        }
+    }
+}
+
+
+contract StargateDriver is ProtocolDriver {
+    function Execute(bytes calldata action) external virtual override delegatedByVault {
+        (ActionType actionType, bytes memory params) = abi.decode(action, (ActionType, bytes));
+
+        if(actionType == ActionType.Stake) {
+            _Stake(params);
+        } else if(actionType == ActionType.Unstake) {
+            _Unstake(params);
+        }
+    }
+
+    function _Stake(bytes calldata params) internal virtual {
+        (address token, uint pool, uint special_for_stagate_staking) = abi.decode(params, (address, uint, uint));
+
+        // do whatever ...
+        // You are free to introduce any (protocol x action)-specific param, like special_for_stagate_staking
+        // because you have StargateDriver correspondent on the off-chain side (TransitionPlanner)
+    }
+
+    function _Unstake(bytes calldata params) internal virtual {
     }
 }
 ```
