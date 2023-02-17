@@ -37,7 +37,8 @@
 	* 4.5. [Protocol drivers](#Protocoldrivers)
 		* 4.5.1. [Considerations](#Considerations)
 		* 4.5.2. [Design decisions](#Designdecisions-1)
-		* 4.5.3. [Reference source code](#Referencesourcecode)
+		* 4.5.3. [Symmetry between on-chain and off-chain modules](#Symmetrybetweenon-chainandoff-chainmodules)
+		* 4.5.4. [Reference source code](#Referencesourcecode)
 * 5. [Cross-chain transportation](#Cross-chaintransportation)
 	* 5.1. [Considerations](#Considerations-1)
 	* 5.2. [ Decentralized operations required](#Decentralizedoperationsrequired)
@@ -168,7 +169,8 @@
 
 - **Staking tokens**
 <br>
-    $StakingTokens = ( \space StakingToken_i \space | i=1..N \space)$
+
+    $$StakingTokens = ( \space StakingToken_i \space | i=1..N \space)$$
 
 
 - **Regularity of staking pool**
@@ -622,6 +624,7 @@ Below comes two example of asset move plan: an irregular plan and its regular eq
 **Note**: The off-chain execution of this algorithm raises the concerns of decentralization.
 
 <br>
+
 ####  4.3.4. <a name='Algorithminputandoutput'></a>Algorithm input and output
 <br>
 
@@ -732,13 +735,21 @@ Note: This algorithm should be tweaked to cope with changing price slippages and
 </p>
 <br>
 
+####  4.5.3. <a name='Symmetrybetweenon-chainandoff-chainmodules'></a>Symmetry between on-chain and off-chain modules
+
 TransitionPlanner will have the correspondent layer structure:
 - Layer3: correspondent of vaults, that don't know about action type.
 - Layer2: correspondent of drivers' Exexute(.) function, which doesn't know action parameter structure.
 - Layer1: correspondent of drivers' internal action functions, like _Swap(.), which know action parameter structure.
+<br>
+
+<p align="center">
+  <img src=".\Protocol Scheme Symmetry.PNG" width="1280" title="vault use cases" style="page-break-after: avoid;">
+</p>
+<br>
 
 
-####  4.5.3. <a name='Referencesourcecode'></a>Reference source code
+####  4.5.4. <a name='Referencesourcecode'></a>Reference source code
 
 **ProtocolDriver**
 
@@ -752,7 +763,7 @@ abstract contract ProtocolDriver is Ownable {
     }
 
     modifier delegatedByVault() {
-        require(this == vault, "Wrong vault");  // this: Assuming delegatecall.
+        require(address(this) == vault, "Wrong vault");  // this: Assuming delegatecall.
         _;
     }
 
