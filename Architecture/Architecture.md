@@ -646,7 +646,7 @@ Below comes two example of asset move plan: an irregular plan and its regular eq
     $$AssetDelta_c = VA^{t+}_c - VA^t_c$$
     for all chian c. The elements are called an **asset delta** or simply a **delta**. 
     <br>
-    An asset delta shows an amount of asset, and has either the source or the destination of the assets.
+    An asset delta shows an amount of asset, and has either the source or the destination of the assets. **The goal of transitioning is to move assets between deltas to make them all zero.**
     <br>
 
     - A deposit-slot delta shows a positive amount of asset, and has the source of assets. The source will be the local vault.
