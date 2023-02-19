@@ -643,60 +643,59 @@ Below comes two example of asset move plan: an irregular plan and its regular eq
 ####  4.3.5. <a name='Process'></a>Process
 
 - Find 
-    $$AssetDelta_c = VA^{t+}_c - VA^t_c$$
-    for all chian c. The elements are called an **asset delta** or simply a **delta**. 
+    $$Asset \space Surplus_c = VA^t_c - VA^{t+}_c$$
+    or, in other words, $$Asset \space Surplus_c \space = \space Current \space amounts \space - \space Target \space amounts$$
+    for all chian c.
     <br>
-    
-    - An asset delta shows an amount of asset, and has either the source or the destination of the assets. 
-    - **The goal of transitioning is to send their delta amounts to all places.** 
-    <br>
-    - A deposit-slot delta shows a negative amount of asset, and has the source of assets. The source will be the local vault. It's always a giving delta. Sending a negative amount takes out a positive amount.
-    - A withdrawal-slot delta shows a positive amount of asset, and has the destination of assets. The destination is be the "to" of the request.) It's always a taking delta.
-    - A reward-slot delta shows a negative amount of asset, and has the source of asset. The source will be the local vault after collecting rewards.
-    - A stake-slot delta shows a positive or negative amount of asset, and has the source of asset. The source is the staking pool combined with the staking/un-staking method.
+    - Asset surplus element is, therefore, defined for each of deposit, withdrawal, staking, and reward places on all chian.
+    - The elements are called an **asset surplus** or simply a **surplus**.
+    - An asset place is a giving place if it has a positive surplus, and a taking place if it has a negative surplus.
+    - **The goal of transitioning is to take surplus amounts from giving places, and divide them to taking places.**
+    - A deposit, as an asset place, has always a positive surplus and is a giving place, because its current amount is positive and the target amount is zero (i.e. we have to empty the place). The source will be the local vault when the request is pending processing.
+    - A withdrawal, as an asset place, has always a negative surplus and is a taking place, because its current amount is negative (debt) (when the request is pending processing and the debt amount has been calculated) and the target amount is zero (i.e. we have to settle the debt). It has the destination of assets. The destination is be the "to" wallet of the request.
+    - A reward, as an asset place, has always a positive surplus and is a giving place, because its current amount is positive and the target amount is zero (i.e. we have to empty the place). The source will be the local vault when the request has been collected.
+    - A stake, as an asset place, has either a positive, zero, or negative surplus, because the target amount may be less, equal, or greater than the current amount. The source is the staking pool combined with the staking/un-staking method.
 
-- Classify deltas in $Delat_c$ into giving deltas and taking deltas, for all chains c.
-
-    - If the asset delta is significantly less than zero, it is a **giving delta** and it is the giving amount.
-    - Let all of **$D^t_c$** be giving asset deltas, however small.
-    - If the current asset amount is significantly greater than zero, it is a **taking asset delta** and it is the taking amount
-    - Let all of **$W^t_c$** be taking asset deltas, however small.
-    - Else, it is a neutral asset delta
-    - An asset delta has
-        - a negative, **giving amount** if it is a giving asset delta, else zero
-        - a positive, **taking amount** if it is a taking asset delta, else zero
-        - a zero giving amount and a zero taking amount if it is a neutral asset delta.
+- Classify all asset places on al chains into giving and taking places, again.
+    - If the asset surplus is significantly greater than zero, it is a **giving surplus** and it is the giving amount.
+    - If the asset surplus is significantly less than zero, it is a **taking asset surplus** and its absolute value is the taking amount.
+    - Else, it is a neutral asset place.
+    - An asset place has has either
+        - a positive **giving amount** and a zero taking amount,
+        - a positive **taking amount** and a zero giving amount,
+        - or, a zero giving amount and a zero taking amount.
 
 - Classify chains into giving chains and taking chains
-    - If the sum of giving amounts on a given chain is significantly greater than the sum of taking amount, it is a **giving chain**, and the difference is called the **giving amount**, or surplus, of the giving chain.
-    - If the sum of taking amounts on a given chain is significantly greater than the sum of giving amount, it is a **taking chain** and the difference is called the **taking amount**, or deficit, of the taking chain.
+    - If the sum of giving amounts on a given chain is significantly greater than the sum of taking amount, it is a **giving chain**, and the absolute difference is called the **giving amount**, or surplus, of the giving chain.
+    - If the sum of taking amounts on a given chain is significantly greater than the sum of giving amount, it is a **taking chain** and the absolute difference is called the **taking amount**, or deficit, of the taking chain.
     - Else, it is a neutral chian
-    - A chain has
-        - a negative, giving amount if it is a giving chain, else zero
-        - a positive, taking amount if it is a taking chain, else zero
-        - a zero giving amount and a zero taking amount if it is a neutral chain
+    - A chain has either
+        - a positive giving amount and a zero taking amount,
+        - a positive taking amount and a zero giving amount,
+        - or a zero giving amount and a zero taking amount.
         
 - Generate a regular **intra-chain asset move plan** for giving chains
     - Collect the local swap prices and fees
-    - Collect giving amounts of all giving asset deltas to the vault.
-    - Swap, divide, and send the collected amount to fill the taking amounts of taking asset deltas. *Put priority on instances in $W^t_c$ and make sure to fill in them.*
+    - Collect giving amounts of all giving asset places to the vault.
+    - Swap, divide, and send the collected amount to fill the taking amounts of taking asset places. *Put priority on instances in $W^t_c$ and make sure to fill in them.*
     - Regularize the plan. (See previous sections)
 
 - Execute the regular intra-chain asset move plans for giving chains.
-    - The giving amount of giving chains should remain in their vault.
+    - The giving, surplus amount of giving chains should remain in their vault.
 
-- Generate a regular **inter-chain asset move plan** that divides and transfers the giving amount of assets of giving chains to taking chains.
-    - Collect giving amounts of all giving chains to the master vault.
-    - Swap, divide, and send the collected amount to fill the taking amounts of taking chains.
+- Generate a regular **inter-chain asset move plan** that divides giving amount of assets of giving chains to taking chains.
+    - Collect giving amounts of giving chains from their vaults to the master vault.
+    - Swap, divide, and send the collected amount to fill in the taking amounts of taking chains at their vaults.
     - Regularize the plan.
 
 - Execute the regular inter-chain asset move plan.
     - There should not remain assets in the master vault, except dusts.
 
 - Generate a regular intra-chain asset move plan for taking chains
-    - Collect the local swap prices and fees
-    - Collect giving amounts of all giving asset deltas to the vault.
-    - Swap, divide, and send the collected amount to fill the taking amounts of taking asset deltas. *Put priority on instances in $W^t_c$ and make sure to fill in them.*
+    - Collect the local swap prices and fees.
+    - Note: the vault has already got some assets that came from giving chains.
+    - Collect giving amounts of all giving asset places to the vault.
+    - Swap, divide, and send the collected amount to fill the taking amounts of taking asset places. *Put priority on instances in $W^t_c$ and make sure to fill in them.*
     - Regularize the plan. (See previous sections)
 
 - Execute regular intra-chain asset move plans for taking chains.
