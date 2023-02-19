@@ -646,33 +646,34 @@ Below comes two example of asset move plan: an irregular plan and its regular eq
     $$AssetDelta_c = VA^{t+}_c - VA^t_c$$
     for all chian c. The elements are called an **asset delta** or simply a **delta**. 
     <br>
-    An asset delta shows an amount of asset, and has either the source or the destination of the assets. **The goal of transitioning is to move assets between deltas to make them all zero.**
+    
+    - An asset delta shows an amount of asset, and has either the source or the destination of the assets. 
+    - **The goal of transitioning is to send their delta amounts to all places.** 
     <br>
-
-    - A deposit-slot delta shows a positive amount of asset, and has the source of assets. The source will be the local vault.
-    - A withdrawal-slot delta shows a negative amount of asset, and has the destination of assets. The destination is be the "to" of the request.)
-    - A reward-slot delta shows a positive amount of asset, and has the source of asset. The source will be the local vault.
-    - A stake-slot delta shows a positive amount of asset, and has the source of asset. The source is the staking pool combined with the un-staking method.
+    - A deposit-slot delta shows a negative amount of asset, and has the source of assets. The source will be the local vault. It's always a giving delta. Sending a negative amount takes out a positive amount.
+    - A withdrawal-slot delta shows a positive amount of asset, and has the destination of assets. The destination is be the "to" of the request.) It's always a taking delta.
+    - A reward-slot delta shows a negative amount of asset, and has the source of asset. The source will be the local vault after collecting rewards.
+    - A stake-slot delta shows a positive or negative amount of asset, and has the source of asset. The source is the staking pool combined with the staking/un-staking method.
 
 - Classify deltas in $Delat_c$ into giving deltas and taking deltas, for all chains c.
 
-    - If the asset delta is significantly greater than zero, it is a **giving delta** and it is the giving amount.
+    - If the asset delta is significantly less than zero, it is a **giving delta** and it is the giving amount.
     - Let all of **$D^t_c$** be giving asset deltas, however small.
-    - If the current asset amount is significantly less than zero, it is a **taking asset delta** and it is the taking amount
+    - If the current asset amount is significantly greater than zero, it is a **taking asset delta** and it is the taking amount
     - Let all of **$W^t_c$** be taking asset deltas, however small.
     - Else, it is a neutral asset delta
     - An asset delta has
-        - a positive **giving amount** if it is a giving asset delta, else zero
-        - a positive **taking amount** if it is a taking asset delta, else zero
+        - a negative, **giving amount** if it is a giving asset delta, else zero
+        - a positive, **taking amount** if it is a taking asset delta, else zero
         - a zero giving amount and a zero taking amount if it is a neutral asset delta.
 
 - Classify chains into giving chains and taking chains
-    - If the sum of giving amounts on a given chain is significantly greater than the sum of taking amount, it is a **giving chain**, and the difference is called the **giving amount** of the giving chain.
-    - If the sum of taking amounts on a given chain is significantly greater than the sum of giving amount, it is a **taking chain** and the difference is called the **taking amount** of the taking chain.
+    - If the sum of giving amounts on a given chain is significantly greater than the sum of taking amount, it is a **giving chain**, and the difference is called the **giving amount**, or surplus, of the giving chain.
+    - If the sum of taking amounts on a given chain is significantly greater than the sum of giving amount, it is a **taking chain** and the difference is called the **taking amount**, or deficit, of the taking chain.
     - Else, it is a neutral chian
     - A chain has
-        - a positive giving amount if it is a giving chain, else zero
-        - a positive giving amount if it is a taking chain, else zero
+        - a negative, giving amount if it is a giving chain, else zero
+        - a positive, taking amount if it is a taking chain, else zero
         - a zero giving amount and a zero taking amount if it is a neutral chain
         
 - Generate a regular **intra-chain asset move plan** for giving chains
